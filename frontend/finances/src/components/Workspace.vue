@@ -1,33 +1,6 @@
 <template>
-<header>
-    <div class="header-content">
-        <img class="search-icon" src="@/assets/img/union.svg" alt="search_icon">
-        <div class="header-left">
-            <h1 class="logo">Vedi Project</h1>
-            <div class="left-item">
-                <input type="text" class="search-input" placeholder="Поиск">
-            </div>
-        </div>
-        <div class="header-right">
-            <a href="#" class="header-nav">Мой тариф</a>
-            <a href="#" class="header-nav">Партнерская программа</a>
-            <button>I</button>
-            <img class="avatar" src="@/assets/img/user_photo.png" alt="avatar">
-        </div>
-    </div>
-</header>
-<section id="nav-section">
-    <div class="breadcrumb">
-        <h1>Рабочий стол</h1>
-    </div>
-    <div class="nav">
-        <ul>
-            <li><a href="#">Проекты</a></li>
-            <li><a href="#">Прочие расходы</a></li>
-            <li><a href="#">Команда</a></li>
-        </ul> 
-    </div>
-</section>
+<Header></Header>
+<Nav pageTitle="Рабочий стол"></Nav>
 <section id="main-content">
     <div class="cards">
         <div class="row">
@@ -67,13 +40,63 @@
                 <DynamicChart :chartData="data" />
             </div>
         </div>
+        <div class="row">
+            <div class="other card">
+                <div class="row">
+                    <div class="card-text">
+                        <h2>Расходы по проектам</h2>
+                        <p>33 506 000р.</p>
+                    </div>
+                    <div class="circle-chart">
+                        <DonutChart />
+                    </div>
+                    <div class="card-butt">
+                        <button></button>
+                    </div>
+                </div>
+            </div>
+            <div class="other card">
+                <div class="row">
+                    <div class="card-text">
+                        <h2>Расходы по проектам</h2>
+                        <p>33 506 000р.</p>
+                    </div>
+                    <div class="circle-chart">
+                        <DonutChart />
+                    </div>
+                    <div class="card-butt">
+                        <button></button>
+                    </div>
+                </div>
+            </div>
+            <div class="other card">
+                <div class="row">
+                    <div class="card-text">
+                        <h2>Расходы по проектам</h2>
+                        <p>33 506 000р.</p>
+                    </div>
+                    <div class="circle-chart">
+                        <DonutChart />
+                    </div>
+                    <div class="card-butt">
+                        <button></button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </section>
+<div class="bottom-button">
+        <button><a href="/projects">Перейти к проектам</a></button>
+    </div>
 </template>
 
 <script>
 import DynamicChart from "@/components/DynamicChart.vue";
 import Revenue from "@/components/Revenue.vue";
+import DonutChart from "@/components/DonutChart.vue";
+import Header from "./Header.vue";
+import Nav from "./Nav.vue";
 
 
 export default {
@@ -81,6 +104,9 @@ export default {
     { 
         DynamicChart,
         Revenue,
+        DonutChart,
+        Header,
+        Nav
     },
   data() {
     return {
@@ -106,16 +132,47 @@ export default {
 </script>
 
 <style>
-header {
-    padding: 2% 5% 2% 5%;
-    border-bottom: 1px solid #BBBBBB;
+
+.other {
+    background-color: #FFFFFF;
+    border-radius: 20px;
+    margin-top: 1%;
+}
+.bottom-button {
+    width: 100%;
+}
+.bottom-button button {
+    font-family: "Manrope";
+    font-weight: 400;
+    font-style: "Regular";
+    font-size: 22px;
+    line-height: 150%;
+    letter-spacing: 0%;
+    background-color:#446BFA;
+    color: #FFFFFF;
+    outline: none;
+    border: none;
+    border-radius: 16px;
+    width: 100%;
+    padding: 20px;
+}
+.bottom-button button a {
+    text-decoration: none;
+    color: #FFFFFF;
+}
+.bottom-button button:hover {
+    cursor: pointer;
 }
 .zp {
     background-color: #FFFFFF;
 }
 .row {
     display: flex;
-    justify-content: space-around;
+    /* justify-content: space-around; */
+}
+.card {
+    padding: 20px;
+    box-shadow: 5px 5px 10px rgba(197, 197, 197, 0.692);
 }
 .card-head {
     display: flex;
@@ -142,11 +199,13 @@ header {
     color: #000000B2;
 }
 #main-content {
-    background-color: rgb(243, 243, 243);
+    /* background-color: rgb(243, 243, 243); */
+    background-color: #F1F4FF;
     padding: 2% 5% 2% 5%;
 }
 .dynamics {
     background-color: #FFFFFF;
+    width: 65%;
 }
 .balance {
     text-align: center;
@@ -190,101 +249,16 @@ header {
     border-radius: 20px;
     margin-left: 20px;
 }
-#nav-section {
-    border-bottom: 1px solid #BBBBBB;
+
+.row-left {
     display: flex;
-    padding: 0.5% 5% 0.5% 5%;
-    align-items: center;
-    position: relative;
-    background-color: rgb(243, 243, 243);
+    flex-direction: column;
+    gap: 20px;
+    width: 35%;
 }
-.breadcrumb h1 {
-    font-family: "Manrope";
-    font-weight: 400;
-    font-style: Regular;
-    font-size: 22px;
-    line-height: 140%;
-    letter-spacing: 0%;
-    text-align: center;
-    color: #000000B2;
-}
-.nav {
-    align-content: center;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-}
-.nav ul {
-    list-style: none;
-    display: flex;
-}
-.nav ul li {
-    margin-left: 20px;
-}
-.nav ul li a {
-    text-decoration: none;
-    font-family: "Manrope";
-    font-weight: 400;
-    font-style: Regular;
-    font-size: 18px;
-    line-height: 140%;
-    letter-spacing: 0%;
-    text-align: center;
-    color: #000000B2;
-}
-.logo {
-    font-family: "Manrope";
-    font-weight: 600;
-    font-size: 20px;
-    line-height: 100%;
-    letter-spacing: 0%;
-    color: #3383FB;
-}
-.search-input {
-    border-radius: 20px;
-    margin-left: 20px;
-    height: 45%;
-    border: 1px solid #00000080;
-    padding: 2% 8% 2% 16%;
-    background-color: #F1F4FF;
-    color: #BBBBBB;
-}
-.search-icon {
-    position: absolute;
-    left: 19.5%;
-}
-.header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-.avatar {
-    width: 64px;
-    border-radius: 50%;
-}
-.header-left {
-    display: flex;
-    justify-content: space-between;
-    /* width: 50%; */
+.row-left .card {
+    flex: 1;
 }
 
-.header-right {
-    display: flex;
-    justify-content: space-between;
-    width: 50%;
-    align-items: center;
-}
-.left-item {
-    align-content: center;
-}
-.header-nav {
-    text-decoration: none;
-    font-family: "Manrope";
-    font-weight: 400;
-    font-size: 16px;
-    line-height: 140%;
-    letter-spacing: 0%;
-    text-align: center;
-    color: #00000080;
-}
+
 </style>

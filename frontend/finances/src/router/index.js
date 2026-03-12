@@ -3,6 +3,9 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Workspace from '../components/Workspace.vue'
 import LoginView from '../components/Auth.vue'
 import Register from '../components/Register.vue'
+import Projects from '@/components/Projects.vue'
+import Team from '@/components/Team.vue'
+import OtherExpenses from '@/components/OtherExpenses.vue'
 
 const routes = [
   {
@@ -20,7 +23,22 @@ const routes = [
     name: 'workspace',
     // meta: { requiresAuth: true },
     component: Workspace
-  }
+  },
+  {
+    path: '/projects',
+    name: 'projects',
+    component: Projects
+  },
+  {
+    path: '/team',
+    name: 'team',
+    component: Team
+  },
+  {
+    path: '/expenses',
+    name: 'expenses',
+    component: OtherExpenses
+  },
 ]
 
 const router = createRouter({
