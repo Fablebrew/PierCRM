@@ -5,9 +5,9 @@
     </div>
     <div class="nav">
       <ul>
-        <li><a href="#">Проекты</a></li>
-        <li><a href="#">Прочие расходы</a></li>
-        <li><a href="#">Команда</a></li>
+        <li><a href="/projects">Проекты</a></li>
+        <li><a href="/expenses">Прочие расходы</a></li>
+        <li><a href="/team">Команда</a></li>
       </ul> 
     </div>
   </section>

@@ -29,16 +29,50 @@
         <div>{{ member.email }}</div>
         <div>{{ member.phone }}</div>
         <div>{{ member.role }}</div>
-        <div><img src="@/assets/img/redact.svg"></div>
+        <div><img src="@/assets/img/redact.svg" @click="editMember(index)"></div>
       </div>
 
     </div>
 
     <!-- кнопка -->
-    <div class="create-button">
+    <div class="create-button" @click="showModal=true">
       <button>Создать сотрудника</button>
     </div>
+    <!-- модалка -->
+    <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
+      <div class="modal">
+        <h2>
+          {{ editingIndex !== null ? 'Редактировать сотрудника' : 'Создать сотрудника' }}
+        </h2>
 
+        <label>
+          Имя
+          <input type="text" v-model="newMember.name" placeholder="Введите имя">
+        </label>
+
+        <label>
+          Email
+          <input type="email" v-model="newMember.email" placeholder="Введите email">
+        </label>
+
+        <label>
+          Телефон
+          <input type="text" v-model="newMember.phone" placeholder="+375...">
+        </label>
+
+        <label>
+          Вид деятельности
+          <input type="text" v-model="newMember.role" placeholder="Например: дизайнер">
+        </label>
+
+        <div class="modal-buttons">
+          <button class="save-btn" @click="addMember">
+            {{ editingIndex !== null ? 'Сохранить' : 'Создать' }}
+          </button>
+          <button class="cancel-btn" @click="showModal = false">Отмена</button>
+        </div>
+      </div>
+    </div>
   </section>
 
 </template>
@@ -55,6 +89,14 @@ export default {
 
   data() {
     return {
+      showModal: false,
+      editingIndex: null, // какой элемент редактируем
+      newMember: {
+        name: '',
+        email: '',
+        phone: '',
+        role: ''
+      },
       team: [
         {
           name: "Влада Насанович",
@@ -82,11 +124,114 @@ export default {
         }
       ]
     }
+  },
+  methods: {
+    addMember() {
+      if(this.newMember.name && this.newMember.email) {
+
+        if(this.editingIndex !== null) {
+          // ✏️ редактирование
+          this.team[this.editingIndex] = { ...this.newMember };
+        } else {
+          // ➕ создание
+          this.team.push({
+            ...this.newMember,
+            id: Date.now()
+          });
+        }
+
+        // сброс
+        this.newMember = {
+          name: '',
+          email: '',
+          phone: '',
+          role: ''
+        };
+
+        this.editingIndex = null;
+        this.showModal = false;
+
+      } else {
+        alert('Введите имя и email');
+      }
+    },
+    editMember(index) {
+      this.editingIndex = index;
+
+      // копируем данные в форму
+      this.newMember = { ...this.team[index] };
+
+      this.showModal = true;
+    }
   }
 }
 </script>
 
 <style scoped>
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 100;
+}
+
+.modal {
+  background: #fff;
+  width: 500px;
+  padding: 30px;
+  border-radius: 15px;
+}
+
+.modal h2 {
+  font-family: 'Manrope';
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+.modal label {
+  display: block;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.modal input {
+  width: 100%;
+  height: 40px;
+  margin-top: 5px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #F1F4FF;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.save-btn {
+  background: #3383FB;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.cancel-btn {
+  background: #E9E9E9;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
 
 .team-page{
   padding: 40px;

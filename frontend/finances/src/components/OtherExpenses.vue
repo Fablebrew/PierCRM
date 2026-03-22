@@ -67,13 +67,59 @@
         </label>
 
         <label>
+          Счет оплаты
+          <select v-model="newExpense.account">
+            <option disabled value="">Выберите счет</option>
+            <option v-for="acc in accounts" :key="acc" :value="acc">
+              {{ acc }}
+            </option>
+          </select>
+        </label>
+
+        <label>
           Дата оплаты
           <input type="date" v-model="newExpense.date">
         </label>
 
+        <label>Тег</label>
+
+        <div class="tags-row">
+          <div
+            v-for="tag in tags"
+            :key="tag.name"
+            class="tag-option"
+            :class="{ active: newExpense.tag === tag.name }"
+            @click="selectTag(tag)"
+          >
+            <span
+              class="tag-color"
+              :style="{ background: tag.color }"
+            ></span>
+
+            {{ tag.name }}
+          </div>
+        </div>
+        <div class="new-tag">
+          <h4>Новый тег</h4>
+
+          <input
+            type="text"
+            v-model="newTag.name"
+            placeholder="Название тега"
+          >
+
+          <input
+            type="color"
+            v-model="newTag.color"
+          >
+
+          <button @click="addTag">
+            Создать тег
+          </button>
+        </div>
         <label>
-          Тег
-          <input type="text" v-model="newExpense.tag" placeholder="Введите тег">
+          Описание
+          <textarea v-model="newExpense.description"></textarea>
         </label>
 
         <!-- Кнопки -->
@@ -101,6 +147,38 @@ export default {
   data(){
     return{
       showModal: false,
+
+      // новый расход
+      newExpense: {
+        name: '',
+        amount: '',
+        date: '',
+        tag: '',
+        color: '',
+        account: ''
+      },
+
+      // счета
+      accounts: [
+        'Наличные',
+        'Карта Сбер',
+        'Тинькофф',
+        'PayPal'
+      ],
+
+      // теги
+      tags: [
+        { name: 'Обучение', color: '#EE6F6F' },
+        { name: 'Подписки', color: '#A3BA63' },
+        { name: 'Сервисы', color: '#5170AD' },
+        { name: 'Маркетинг', color: '#A346B2' }
+      ],
+
+      // создание нового тега
+      newTag: {
+        name: '',
+        color: '#3383FB'
+      },
       expenses:[
 
         {
@@ -141,15 +219,50 @@ export default {
   },
   methods: {
     addExpense() {
-      // добавляем новый расход
       if(this.newExpense.name && this.newExpense.amount) {
-        this.expenses.push({ ...this.newExpense });
-        // сброс формы
-        this.newExpense = { name:'', amount:'', date:'', tag:'', color:'#3383FB' };
+
+        this.expenses.push({
+          ...this.newExpense
+        });
+
+        this.newExpense = {
+          name:'',
+          amount:'',
+          date:'',
+          tag:'',
+          color:'',
+          account:''
+        };
+
         this.showModal = false;
       } else {
-        alert('Введите название и сумму расхода');
+        alert('Введите название и сумму');
       }
+    },
+
+    selectTag(tag) {
+      this.newExpense.tag = tag.name;
+      this.newExpense.color = tag.color;
+    },
+
+    addTag() {
+      if(!this.newTag.name) return;
+
+      const tag = {
+        name: this.newTag.name,
+        color: this.newTag.color
+      };
+
+      this.tags.push(tag);
+
+      // сразу выбираем новый тег
+      this.selectTag(tag);
+
+      // сброс
+      this.newTag = {
+        name: '',
+        color: '#3383FB'
+      };
     }
   }
 
@@ -157,6 +270,88 @@ export default {
 </script>
 
 <style scoped>
+.modal textarea {
+  width: 100%;
+  min-height: 100px;
+  margin-top: 5px;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #F1F4FF;
+  resize: vertical; /* можно растягивать только по вертикали */
+  font-family: 'Manrope';
+  font-size: 14px;
+}
+.tags-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+}
+
+.tag-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: #F1F4FF;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.tag-option.active {
+  border: 1px solid #3383FB;
+}
+
+.new-tag {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+/* большой инпут */
+.new-tag input[type="text"] {
+  flex: 1;
+  height: 40px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #F1F4FF;
+}
+
+/* маленький выбор цвета */
+.new-tag input[type="color"] {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+/* убираем стандартные отступы у color */
+.new-tag input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.new-tag input[type="color"]::-webkit-color-swatch {
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+/* кнопка */
+.new-tag button {
+  height: 40px;
+  background: #3383FB;
+  color: white;
+  border: none;
+  padding: 0 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
 .modal-overlay {
   position: fixed;
   top: 0;
