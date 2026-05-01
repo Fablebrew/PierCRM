@@ -6,12 +6,18 @@ import Register from '../components/Register.vue'
 import Projects from '@/components/Projects.vue'
 import Team from '@/components/Team.vue'
 import OtherExpenses from '@/components/OtherExpenses.vue'
+import Tarif from '@/components/Tarif.vue'
 
 const routes = [
   {
     path: '/register',
     name: 'register',
     component: Register
+  },
+  {
+    path: '/tarif',
+    name: 'tarif',
+    component: Tarif
   },
   {
     path: '/login',

@@ -9,7 +9,7 @@
             </div>
         </div>
         <div class="header-right">
-            <a href="#" class="header-nav">Мой тариф</a>
+            <a href="/tarif" class="header-nav">Мой тариф</a>
             <a href="#" class="header-nav">Партнерская программа</a>
             <button>I</button>
             <img class="avatar" src="@/assets/img/user_photo.png" alt="avatar">
