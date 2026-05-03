@@ -1,10 +1,18 @@
 <template>
   <Header />
-  <Nav page-title="Прочие расходы"/>
+  <Nav page-title="Прочие расходы" class="nav-component"/>
 
   <section class="expenses-page">
 
+    <!-- Заголовок страницы -->
+    <h1 class="page-title">Прочие расходы</h1>
+
     <div class="expenses-container">
+
+      <!-- Кнопка для мобильных -->
+      <button class="mobile-add-btn" @click="showModal = true">
+        <span>+</span>
+      </button>
 
       <!-- header -->
       <div class="table-header table-grid">
@@ -23,11 +31,11 @@
       >
         <div class="name">
           <input type="checkbox">
-          {{ expense.name }}
+          <span class="expense-name">{{ expense.name }}</span>
         </div>
 
-        <div>{{ expense.amount }}</div>
-        <div>{{ expense.date }}</div>
+        <div class="expense-amount">{{ expense.amount }}</div>
+        <div class="expense-date">{{ expense.date }}</div>
 
         <div class="tag">
             <span 
@@ -41,15 +49,18 @@
         </div>
 
         <div class="edit">
-          <img src="@/assets/img/redact.svg">
+          <img src="@/assets/img/redact.svg" class="edit-icon">
         </div>
       </div>
     </div>
-    <div class="expenses-button">
+
+    <!-- Кнопка для десктопа -->
+    <div class="expenses-button desktop-btn">
         <button @click="showModal = true">
             Добавить расход
         </button>
     </div>
+
   <!-- модальное окно -->
     <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
       <div class="modal">
@@ -270,6 +281,47 @@ export default {
 </script>
 
 <style scoped>
+* {
+  box-sizing: border-box;
+}
+
+/* Заголовок страницы */
+.page-title {
+  text-align: center;
+  font-family: "Manrope";
+  font-weight: 500;
+  font-size: 30px;
+  line-height: 140%;
+  letter-spacing: 0%;
+  color: #000000;
+  margin-bottom: 30px;
+  width: 100%;
+}
+
+/* Мобильная кнопка */
+.mobile-add-btn {
+  display: none;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #3383FB;
+  color: white;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-add-btn span {
+  line-height: 1;
+}
+
 .modal textarea {
   width: 100%;
   min-height: 100px;
@@ -278,10 +330,23 @@ export default {
   border-radius: 6px;
   border: 1px solid #ccc;
   background: #F1F4FF;
-  resize: vertical; /* можно растягивать только по вертикали */
+  resize: vertical;
   font-family: 'Manrope';
   font-size: 14px;
 }
+
+.modal select {
+  width: 100%;
+  height: 40px;
+  margin-top: 5px;
+  padding: 0 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  background: #F1F4FF;
+  font-family: 'Manrope';
+  font-size: 14px;
+}
+
 .tags-row {
   display: flex;
   gap: 10px;
@@ -309,9 +374,17 @@ export default {
   display: flex;
   gap: 10px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
-/* большой инпут */
+.new-tag h4 {
+  width: 100%;
+  margin: 0 0 5px 0;
+  font-family: 'Manrope';
+  font-size: 14px;
+  color: rgba(0,0,0,0.7);
+}
+
 .new-tag input[type="text"] {
   flex: 1;
   height: 40px;
@@ -319,9 +392,9 @@ export default {
   border-radius: 6px;
   border: 1px solid #ccc;
   background: #F1F4FF;
+  min-width: 150px;
 }
 
-/* маленький выбор цвета */
 .new-tag input[type="color"] {
   width: 40px;
   height: 40px;
@@ -331,7 +404,6 @@ export default {
   cursor: pointer;
 }
 
-/* убираем стандартные отступы у color */
 .new-tag input[type="color"]::-webkit-color-swatch-wrapper {
   padding: 0;
 }
@@ -341,7 +413,6 @@ export default {
   border: 1px solid #ccc;
 }
 
-/* кнопка */
 .new-tag button {
   height: 40px;
   background: #3383FB;
@@ -352,6 +423,7 @@ export default {
   cursor: pointer;
   white-space: nowrap;
 }
+
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -367,7 +439,10 @@ export default {
 
 .modal {
   background: #fff;
-  width: 755px;
+  width: 90%;
+  max-width: 755px;
+  max-height: 90vh;
+  overflow-y: auto;
   padding: 30px;
   border-radius: 15px;
   position: relative;
@@ -422,180 +497,319 @@ export default {
   padding: 0 20px;
   cursor: pointer;
 }
-.expenses-button{
 
-  width:805px;
-  margin:20px auto 0;
-
+.expenses-button {
+  width: 100%;
+  max-width: 805px;
+  margin: 20px auto 0;
   filter: drop-shadow(2px 2px 6px rgba(0,0,0,0.08));
-
 }
 
-.expenses-button button{
-
-  width:100%;
-  height:40px;
-
-  background:#3383FB;
-
-  border:none;
-  border-radius:15px;
-
-  font-family:Manrope;
-  font-size:14px;
-  font-weight:400;
-
-  color:white;
-
-  cursor:pointer;
-
+.expenses-button button {
+  width: 100%;
+  height: 40px;
+  background: #3383FB;
+  border: none;
+  border-radius: 15px;
+  font-family: Manrope;
+  font-size: 14px;
+  font-weight: 400;
+  color: white;
+  cursor: pointer;
 }
 
-.expenses-button button:hover{
-
-  background:#2e74df;
-
+.expenses-button button:hover {
+  background: #2e74df;
 }
-.expenses-page{
 
-  display:flex;
-  flex-direction: column; /* <- добавить */
-  align-items: center; 
-  padding:60px 20px;
-  background:#F1F4FF;
-  min-height:100vh;
-
+.expenses-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 60px 20px;
+  background: #F1F4FF;
+  min-height: 100vh;
 }
 
 /* контейнер таблицы */
-
-.expenses-container{
-
-  width:805px;
-  height:298px;
-
-  background:white;
-  border:0.5px solid #BBBBBB;
-  border-radius:15px;
-
-  overflow-y:auto;
+.expenses-container {
+  width: 100%;
+  max-width: 805px;
+  background: white;
+  border: 0.5px solid #BBBBBB;
+  border-radius: 15px;
+  overflow: hidden;
+  position: relative;
 }
 
 /* grid таблицы */
-
-.table-grid{
-
-  display:grid;
-
-  grid-template-columns:
-
-  3fr
-  1.2fr
-  1.4fr
-  1fr
-  40px;
-
-  align-items:center;
-
+.table-grid {
+  display: grid;
+  grid-template-columns: 3fr 1.2fr 1.4fr 1fr 40px;
+  align-items: center;
 }
 
 /* header */
-
-.table-header{
-
-  height:53px;
-
-  background:#DBE1F6;
-
-  padding:0 18px;
-
-  font-family:Manrope;
-  font-size:14px;
-  font-weight:500;
-
-  color:rgba(0,0,0,0.7);
-
-  border-bottom:0.5px solid #BBBBBB;
-
+.table-header {
+  height: 53px;
+  background: #DBE1F6;
+  padding: 0 18px;
+  font-family: Manrope;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0,0,0,0.7);
+  border-bottom: 0.5px solid #BBBBBB;
 }
 
 /* строки */
-
-.table-row{
-
-  height:50px;
-  padding:0 18px;
-
-  font-family:Manrope;
-  font-size:14px;
-  font-weight:300;
-
-  color:rgba(0,0,0,0.7);
-
-  border-bottom:0.5px solid #BBBBBB;
-
+.table-row {
+  height: 50px;
+  padding: 0 18px;
+  font-family: Manrope;
+  font-size: 14px;
+  font-weight: 300;
+  color: rgba(0,0,0,0.7);
+  border-bottom: 0.5px solid #BBBBBB;
 }
 
-.table-row:last-child{
-  border-bottom:none;
+.table-row:last-child {
+  border-bottom: none;
 }
 
 /* расход + чекбокс */
-
-.name{
-
-  display:flex;
-  align-items:center;
-  gap:12px;
-
+.name {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 /* тег цвет */
-.tag{
-
-  display:flex;
-  align-items:center;
-  gap:8px;
-
-}
-.tag-color{
-
-  width:16px;
-  height:16px;
-
-  border-radius:2px;
-
-}
-.tag-text{
-
-  font-family:Manrope;
-  font-size:14px;
-  font-weight:300;
-
-  color:rgba(0,0,0,0.7);
-
+.tag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-.tag span{
+.tag-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
 
-  display:block;
+.tag-text {
+  font-family: Manrope;
+  font-size: 14px;
+  font-weight: 300;
+  color: rgba(0,0,0,0.7);
+}
 
-  width:16px;
-  height:16px;
-
-  border-radius:2px;
-
+.tag span {
+  display: block;
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
 }
 
 /* иконка редактирования */
-
-.edit img{
-
-  width:16px;
-  cursor:pointer;
-
+.edit img {
+  width: 16px;
+  cursor: pointer;
 }
 
+.edit-icon {
+  width: 16px;
+  height: 16px;
+}
 
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+  /* Скрываем Nav */
+  .nav-component {
+    display: none !important;
+  }
+  
+  /* Адаптируем заголовок */
+  .page-title {
+    font-size: 24px;
+    margin-bottom: 20px;
+  }
+  
+  /* Адаптируем страницу */
+  .expenses-page {
+    padding: 20px 10px;
+  }
+  
+  /* Показываем мобильную кнопку */
+  .mobile-add-btn {
+    display: flex;
+  }
+  
+  /* Скрываем десктопную кнопку */
+  .desktop-btn {
+    display: none;
+  }
+  
+  /* Адаптируем контейнер */
+  .expenses-container {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 10px;
+  }
+  
+  /* Адаптируем grid */
+  .table-grid {
+    grid-template-columns: 2fr 1fr 1.2fr 0.8fr 30px;
+    gap: 5px;
+  }
+  
+  /* Адаптируем header */
+  .table-header {
+    padding: 0 10px;
+    font-size: 11px;
+    height: 45px;
+  }
+  
+  /* Адаптируем строки */
+  .table-row {
+    padding: 0 10px;
+    font-size: 11px;
+    height: 45px;
+  }
+  
+  /* Уменьшаем чекбокс */
+  .name input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .name {
+    gap: 8px;
+  }
+  
+  /* Адаптируем тег */
+  .tag {
+    gap: 4px;
+  }
+  
+  .tag-color {
+    width: 12px;
+    height: 12px;
+  }
+  
+  .tag-text {
+    font-size: 11px;
+  }
+  
+  /* Адаптируем иконку редактирования */
+  .edit-icon {
+    width: 14px;
+    height: 14px;
+  }
+  
+  /* Адаптируем модальное окно */
+  .modal {
+    width: 95%;
+    padding: 20px;
+    margin: 10px;
+    max-height: 85vh;
+  }
+  
+  .modal h2 {
+    font-size: 18px;
+  }
+  
+  .modal input,
+  .modal select {
+    height: 36px;
+    font-size: 14px;
+  }
+  
+  .new-tag {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .new-tag input[type="text"] {
+    min-width: auto;
+  }
+}
 
+@media (max-width: 480px) {
+  /* Адаптируем заголовок */
+  .page-title {
+    font-size: 20px;
+    margin-bottom: 15px;
+  }
+  
+  .expenses-page {
+    padding: 15px 5px;
+  }
+  
+  /* Сильнее сжимаем grid */
+  .table-grid {
+    grid-template-columns: 1.5fr 0.8fr 1fr 0.7fr 25px;
+    gap: 3px;
+  }
+  
+  .table-header {
+    padding: 0 8px;
+    font-size: 10px;
+    height: 40px;
+  }
+  
+  .table-row {
+    padding: 0 8px;
+    font-size: 10px;
+    height: 40px;
+  }
+  
+  .name {
+    gap: 5px;
+  }
+  
+  .name input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .tag-color {
+    width: 10px;
+    height: 10px;
+  }
+  
+  .tag-text {
+    font-size: 10px;
+  }
+  
+  .mobile-add-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+    top: 8px;
+    right: 8px;
+  }
+  
+  .modal {
+    padding: 15px;
+  }
+  
+  .modal-buttons {
+    flex-direction: column;
+  }
+  
+  .save-btn, 
+  .cancel-btn {
+    width: 100%;
+  }
+  
+  .tags-row {
+    gap: 5px;
+  }
+  
+  .tag-option {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+}
 </style>

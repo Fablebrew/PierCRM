@@ -1,8 +1,11 @@
 <template>
   <Header />
-  <Nav pageTitle="Проекты" />
+  <Nav page-title="Проекты" class="nav-component" />
 
   <section id="main">
+
+    <!-- Заголовок страницы -->
+    <h1 class="page-title">Проекты</h1>
 
     <!-- фильтры -->
     <div class="filters">
@@ -16,7 +19,7 @@
           <button class="filter">До дедлайна</button>
           <button class="filter">Исполнитель</button>
           <button class="filter">Период</button>
-          <button class="filter" @click="showModal = true">
+          <button class="filter filter-add">
             <img src="@/assets/img/Vector.svg" alt="add_project">
           </button>
         </div>
@@ -28,8 +31,19 @@
       </div>
     </div>
 
-    <!-- контейнер проектов -->
-    <div class="projects-container">
+    <!-- Поиск для мобильных -->
+    <div class="mobile-search">
+      <span class="search-icon-mob">🔍</span>
+      <input type="text" placeholder="Поиск" class="search-input-mob">
+    </div>
+
+    <!-- Кнопка для мобильных -->
+    <button class="mobile-add-btn" @click="showModal = true">
+      <span>+</span>
+    </button>
+
+    <!-- контейнер проектов (десктоп) -->
+    <div class="projects-container desktop-table">
 
       <!-- header -->
       <div class="projects-header grid">
@@ -48,276 +62,300 @@
       </div>
 
       <!-- строки -->
-        <div
-            v-for="(project, index) in projects"
-            :key="index"
-            class="project-row grid"
-        >
-            <div class="name">
-                <input type="checkbox">
-                {{ project.name }}
-            </div>
-
-            <div>{{ project.priority }}</div>
-            <div>{{ project.stage }}</div>
-            <div>{{ project.start }}</div>
-            <div class="deadline">{{ project.deadline }}</div>
-            <div>{{ project.cost }}</div>
-            <div>{{ project.paid }}</div>
-            <div>{{ project.remainder }}</div>
-            <div>{{ project.otherIncome }}</div>
-
-            <div>{{ project.revenue }}</div>
-            <div>{{ project.expense }}</div>
-            <div class="profit">{{ project.profit }}</div>
-
-            <!-- кнопки -->
-            <div class="finance-buttons">
-                <button class="income" @click="openIncomeModal(project)">Доход</button>
-                <button class="expense-btn" @click="openExpenseModal(project)">Расход</button>
-            </div>
+      <div
+        v-for="(project, index) in projects"
+        :key="index"
+        class="project-row grid"
+      >
+        <div class="name">
+          <input type="checkbox">
+          {{ project.name }}
         </div>
 
+        <div>{{ project.priority }}</div>
+        <div>{{ project.stage }}</div>
+        <div>{{ project.start }}</div>
+        <div class="deadline">{{ project.deadline }}</div>
+        <div>{{ project.cost }}</div>
+        <div>{{ project.paid }}</div>
+        <div>{{ project.remainder }}</div>
+        <div>{{ project.otherIncome }}</div>
+
+        <div>{{ project.revenue }}</div>
+        <div>{{ project.expense }}</div>
+        <div class="profit">{{ project.profit }}</div>
+
+        <!-- кнопки -->
+        <div class="finance-buttons">
+          <button class="income" @click="openIncomeModal(project)">Доход</button>
+          <button class="expense-btn" @click="openExpenseModal(project)">Расход</button>
+        </div>
+      </div>
     </div>
-    <div class="bottom-button">
-        <button><a href="#">Создать проект</a></button>
+
+    <!-- Мобильные карточки проектов -->
+    <div class="mobile-projects">
+      <div
+        v-for="(project, index) in projects"
+        :key="'mob-' + index"
+        class="mobile-project-card"
+      >
+        <div class="mobile-project-header">
+          <h3 class="mobile-project-name">{{ project.name }}</h3>
+          <div class="mobile-project-deadline">
+            <span class="calendar-icon">📅</span>
+            <span>{{ project.deadline }}</span>
+          </div>
+        </div>
+
+        <div class="mobile-project-stage">
+          <span class="stage-label">{{ project.stage }}</span>
+          <div class="stage-progress">
+            <span class="progress-dot" v-for="i in 5" :key="i" :class="{ active: i <= 3 }"></span>
+          </div>
+        </div>
+
+        <div class="mobile-project-finance">
+          <div class="finance-item">
+            <span class="finance-label">Стоимость</span>
+            <span class="finance-value">{{ project.cost }}</span>
+          </div>
+          <div class="finance-item">
+            <span class="finance-label">Оплачено</span>
+            <span class="finance-value">{{ project.paid }}</span>
+          </div>
+          <div class="finance-item">
+            <span class="finance-label">Остаток</span>
+            <span class="finance-value">{{ project.remainder }}</span>
+          </div>
+          <div class="finance-item profit-item">
+            <span class="finance-label">Прибыль</span>
+            <span class="finance-value profit-value">{{ project.profit }}</span>
+          </div>
+        </div>
+
+        <div class="mobile-project-buttons">
+          <button class="income" @click="openIncomeModal(project)">Доход</button>
+          <button class="expense-btn" @click="openExpenseModal(project)">Расход</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-button desktop-btn">
+      <button @click="showModal = true"><a href="#">Создать проект</a></button>
     </div>
   </section>
+
+  <!-- Модальное окно создания проекта -->
   <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
-
-  <div class="modal">
-
-    <div class="modal-header">
-      <span>Создать проект</span>
-      <button class="close" @click="showModal = false">✕</button>
-    </div>
-
-    <div class="modal-body">
-
-      <div class="form-grid">
-
-        <div class="field">
-          <label>Название проекта</label>
-          <input type="text">
-        </div>
-
-        <div class="field">
-          <label>Приоритет</label>
-          <select>
-            <option>Низкий</option>
-            <option>Средний</option>
-            <option>Высокий</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Этап</label>
-          <input type="text">
-        </div>
-
-        <div class="field">
-          <label>Начало проекта</label>
-          <input type="date">
-        </div>
-
-        <div class="field">
-          <label>Конец проекта</label>
-          <input type="date">
-        </div>
-
-        <div class="field">
-          <label>Стоимость</label>
-          <input type="number">
-        </div>
-
-        <div class="field">
-          <label>Оплачено</label>
-          <select>
-            <option value="">Да</option>
-            <option value="">Нет</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Заказчик</label>
-          <input type="text">
-        </div>
-
-        <div class="field">
-          <label>Исполнитель</label>
-          <input type="text">
-        </div>
-        <div class="field">
-          <label>Налоговая ставка</label>
-          <select>
-            <option value="">6%</option>
-            <option value="">12%</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Счет</label>
-          <select>
-            <option value="">Карта тинька</option>
-            <option value="">Сбер 1</option>
-            <option value="">Сбер 2</option>
-          </select>
-        </div>
-
+    <div class="modal">
+      <div class="modal-header">
+        <span>Создать проект</span>
+        <button class="close" @click="showModal = false">✕</button>
       </div>
 
-      <textarea placeholder="Описание проекта"></textarea>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="field">
+            <label>Название проекта</label>
+            <input type="text">
+          </div>
 
+          <div class="field">
+            <label>Приоритет</label>
+            <select>
+              <option>Низкий</option>
+              <option>Средний</option>
+              <option>Высокий</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Этап</label>
+            <input type="text">
+          </div>
+
+          <div class="field">
+            <label>Начало проекта</label>
+            <input type="date">
+          </div>
+
+          <div class="field">
+            <label>Конец проекта</label>
+            <input type="date">
+          </div>
+
+          <div class="field">
+            <label>Стоимость</label>
+            <input type="number">
+          </div>
+
+          <div class="field">
+            <label>Оплачено</label>
+            <select>
+              <option value="">Да</option>
+              <option value="">Нет</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Заказчик</label>
+            <input type="text">
+          </div>
+
+          <div class="field">
+            <label>Исполнитель</label>
+            <input type="text">
+          </div>
+          <div class="field">
+            <label>Налоговая ставка</label>
+            <select>
+              <option value="">6%</option>
+              <option value="">12%</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Счет</label>
+            <select>
+              <option value="">Карта тинька</option>
+              <option value="">Сбер 1</option>
+              <option value="">Сбер 2</option>
+            </select>
+          </div>
+        </div>
+
+        <textarea placeholder="Описание проекта"></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button class="save">Сохранить</button>
+        <button class="cancel" @click="showModal = false">Отменить</button>
+        <button class="delete">Удалить данные</button>
+      </div>
     </div>
-
-    <div class="modal-footer">
-
-      <button class="save">Сохранить</button>
-      <button class="cancel" @click="showModal = false">Отменить</button>
-      <button class="delete">Удалить данные</button>
-
-    </div>
-
   </div>
-</div>
-<!-- INCOME MODAL -->
+
+  <!-- Модальное окно дохода -->
   <div v-if="showIncomeModal" class="modal-overlay" @click.self="showIncomeModal=false">
-
-  <div class="modal">
-
-    <div class="modal-header">
-      <span>Добавить доход</span>
-      <button class="close" @click="showIncomeModal=false">✕</button>
-    </div>
-
-    <div class="modal-body">
-
-      <div class="form-grid">
-
-        <div class="field">
-          <label>Название проекта</label>
-          <input type="text" :value="currentProject?.name" disabled>
-        </div>
-
-        <div class="field">
-          <label>Счет</label>
-          <select>
-            <option>Не выбрано</option>
-            <option>Карта тинька</option>
-            <option>Сбер 1</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Сумма</label>
-          <input type="number" placeholder="Не указано">
-        </div>
-
-        <div class="field">
-          <label>Оплачено</label>
-          <select>
-            <option>Не указано</option>
-            <option>Да</option>
-            <option>Нет</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Дата</label>
-          <input type="date">
-        </div>
-
-        <div class="field">
-          <label>Ответственный</label>
-          <input type="text" placeholder="Не указано">
-        </div>
-
+    <div class="modal">
+      <div class="modal-header">
+        <span>Добавить доход</span>
+        <button class="close" @click="showIncomeModal=false">✕</button>
       </div>
 
-      <textarea placeholder="Комментарий"></textarea>
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="field">
+            <label>Название проекта</label>
+            <input type="text" :value="currentProject?.name" disabled>
+          </div>
 
-    </div>
+          <div class="field">
+            <label>Счет</label>
+            <select>
+              <option>Не выбрано</option>
+              <option>Карта тинька</option>
+              <option>Сбер 1</option>
+            </select>
+          </div>
 
-    <div class="modal-footer">
-      <button class="save">Сохранить</button>
-      <button class="cancel" @click="showIncomeModal=false">Отменить</button>
-      <button class="delete">Удалить данные</button>
-    </div>
+          <div class="field">
+            <label>Сумма</label>
+            <input type="number" placeholder="Не указано">
+          </div>
 
-  </div>
+          <div class="field">
+            <label>Оплачено</label>
+            <select>
+              <option>Не указано</option>
+              <option>Да</option>
+              <option>Нет</option>
+            </select>
+          </div>
 
-</div>
-<!-- /INCOME MODAL -->
- <!-- EXPENSE MODAL -->
-<div v-if="showExpenseModal" class="modal-overlay" @click.self="showExpenseModal=false">
+          <div class="field">
+            <label>Дата</label>
+            <input type="date">
+          </div>
 
-  <div class="modal">
-
-    <div class="modal-header">
-      <span>Добавить расход</span>
-      <button class="close" @click="showExpenseModal=false">✕</button>
-    </div>
-
-    <div class="modal-body">
-
-      <div class="form-grid">
-
-        <div class="field">
-          <label>Название проекта</label>
-          <input type="text" :value="currentProject?.name" disabled>
+          <div class="field">
+            <label>Ответственный</label>
+            <input type="text" placeholder="Не указано">
+          </div>
         </div>
 
-        <div class="field">
-          <label>Счет</label>
-          <select>
-            <option>Не выбрано</option>
-            <option>Карта тинька</option>
-            <option>Сбер 1</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Стоимость</label>
-          <input type="number" placeholder="Не указано">
-        </div>
-
-        <div class="field">
-          <label>Оплачено</label>
-          <select>
-            <option>Не указано</option>
-            <option>Да</option>
-            <option>Нет</option>
-          </select>
-        </div>
-
-        <div class="field">
-          <label>Дата</label>
-          <input type="date">
-        </div>
-
-        <div class="field">
-          <label>Исполнитель</label>
-          <input type="text" placeholder="Не указано">
-        </div>
-
+        <textarea placeholder="Комментарий"></textarea>
       </div>
 
-      <textarea placeholder="Комментарий"></textarea>
-
+      <div class="modal-footer">
+        <button class="save">Сохранить</button>
+        <button class="cancel" @click="showIncomeModal=false">Отменить</button>
+        <button class="delete">Удалить данные</button>
+      </div>
     </div>
-
-    <div class="modal-footer">
-      <button class="save">Сохранить</button>
-      <button class="cancel" @click="showExpenseModal=false">Отменить</button>
-      <button class="delete">Удалить данные</button>
-    </div>
-
   </div>
 
-</div>
-<!-- /EXPENSE MODAL -->
+  <!-- Модальное окно расхода -->
+  <div v-if="showExpenseModal" class="modal-overlay" @click.self="showExpenseModal=false">
+    <div class="modal">
+      <div class="modal-header">
+        <span>Добавить расход</span>
+        <button class="close" @click="showExpenseModal=false">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-grid">
+          <div class="field">
+            <label>Название проекта</label>
+            <input type="text" :value="currentProject?.name" disabled>
+          </div>
+
+          <div class="field">
+            <label>Счет</label>
+            <select>
+              <option>Не выбрано</option>
+              <option>Карта тинька</option>
+              <option>Сбер 1</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Стоимость</label>
+            <input type="number" placeholder="Не указано">
+          </div>
+
+          <div class="field">
+            <label>Оплачено</label>
+            <select>
+              <option>Не указано</option>
+              <option>Да</option>
+              <option>Нет</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Дата</label>
+            <input type="date">
+          </div>
+
+          <div class="field">
+            <label>Исполнитель</label>
+            <input type="text" placeholder="Не указано">
+          </div>
+        </div>
+
+        <textarea placeholder="Комментарий"></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button class="save">Сохранить</button>
+        <button class="cancel" @click="showExpenseModal=false">Отменить</button>
+        <button class="delete">Удалить данные</button>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
-import { ref } from "vue";
 import Header from './Header.vue';
 import Nav from './Nav.vue';
 
@@ -345,56 +383,413 @@ export default {
       this.currentProject = project
       this.showIncomeModal = true
     },
-    openExpenseModal(project) {   // ← новый метод
+    openExpenseModal(project) {
       this.currentProject = project
       this.showExpenseModal = true
     },
   },
 };
-
-// Примеры подсветки (полупрозрачные фоны)
-const highlights = ref([
-  { id: 1, top: 255, height: 118 },
-]);
 </script>
 
 <style scoped>
-
-/* overlay */
-
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-
-  background: rgba(0,0,0,0.35);
-  backdrop-filter: blur(6px);
-
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
-  z-index: 1000;
+/* Базовые стили */
+* {
+  box-sizing: border-box;
 }
 
-/* окно */
+/* Заголовок страницы */
+.page-title {
+  text-align: center;
+  font-family: "Manrope";
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 140%;
+  color: rgba(0, 0, 0, 0.7);
+  margin-bottom: 20px;
+  display: none;
+}
 
-.modal {
-  width: 755px;
+/* Мобильная кнопка + */
+.mobile-add-btn {
+  display: none;
+  position: absolute;
+  top: 70px;
+  right: 20px;
+  width: 25px;
+  height: 25px;
+  border-radius: 4px;
+  background: #3383FB;
+  color: white;
+  border: none;
+  font-size: 25px;
+  cursor: pointer;
+  z-index: 10;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.mobile-add-btn span {
+  line-height: 1;
+}
+
+/* Поиск для мобильных */
+.mobile-search {
+  display: none;
+  position: relative;
+  margin: 0 20px 20px;
+}
+
+.search-icon-mob {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  z-index: 1;
+}
+
+.search-input-mob {
+  width: 100%;
+  height: 40px;
+  border-radius: 29px;
+  border: 0.5px solid #BBBBBB;
+  background: #FFFFFF;
+  padding: 0 16px 0 40px;
+  font-family: 'Onest';
+  font-size: 12px;
+  color: #696969;
+}
+
+/* Мобильные карточки проектов */
+.mobile-projects {
+  display: none;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 20px;
+}
+
+.mobile-project-card {
+  background: #FFFFFF;
+  padding: 15px 20px;
+  border-bottom: 1px solid #D7D7D7;
+}
+
+.mobile-project-card:last-child {
+  border-bottom: none;
+}
+
+.mobile-project-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.mobile-project-name {
+  font-family: 'Manrope';
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 140%;
+  color: rgba(0, 0, 0, 0.7);
+  margin: 0;
+}
+
+.mobile-project-deadline {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.calendar-icon {
+  font-size: 14px;
+}
+
+.mobile-project-deadline span {
+  font-family: 'Manrope';
+  font-weight: 300;
+  font-size: 14px;
+  color: #494A4D;
+}
+
+.mobile-project-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 15px;
+}
+
+.stage-label {
+  font-family: 'Manrope';
+  font-weight: 300;
+  font-size: 9px;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.stage-progress {
+  display: flex;
+  gap: 2px;
+}
+
+.progress-dot {
+  width: 13px;
+  height: 13px;
+  background: #E8EAF2;
+  border-radius: 1px;
+}
+
+.progress-dot.active {
+  background: #8DCD94;
+}
+
+.mobile-project-finance {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.finance-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.finance-label {
+  font-family: 'Manrope';
+  font-weight: 300;
+  font-size: 9px;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.finance-value {
+  font-family: 'Manrope';
+  font-weight: 500;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.profit-item .finance-value {
+  color: #3383FB;
+}
+
+.mobile-project-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.mobile-project-buttons .income,
+.mobile-project-buttons .expense-btn {
+  flex: 1;
+  padding: 9px 0;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  font-family: 'Manrope';
+  font-weight: 400;
+  font-size: 12px;
+  cursor: pointer;
+  text-align: center;
+}
+
+/* Основные стили (десктоп) */
+#main {
+  padding: 20px;
+  background: #F1F4FF;
+  min-height: 100vh;
+  position: relative;
+}
+
+.projects-container {
+  margin-top: 40px;
   background: white;
-  border-radius: 10px;
+  border: 1px solid #BBBBBB;
+  border-radius: 15px;
   overflow: hidden;
 }
 
-/* header */
+.grid {
+  display: grid;
+  grid-template-columns:
+    minmax(180px, 2fr)
+    minmax(80px, 1fr)
+    minmax(80px, 1fr)
+    minmax(90px, 1fr)
+    minmax(100px, 1fr)
+    minmax(100px, 1fr)
+    minmax(100px, 1fr)
+    minmax(100px, 1fr)
+    minmax(110px, 1fr)
+    minmax(100px, 1fr)
+    minmax(90px, 1fr)
+    minmax(100px, 1fr);
+  align-items: center;
+}
+
+.projects-header {
+  background: #DBE1F6;
+  font-weight: 500;
+  font-size: 14px;
+  padding: 15px 20px;
+  border-bottom: 1px solid #BBBBBB;
+}
+
+.project-row {
+  padding: 15px 20px;
+  border-bottom: 1px solid #BBBBBB;
+  font-size: 14px;
+  color: rgba(0,0,0,0.7);
+}
+
+.project-row:last-child {
+  border-bottom: none;
+}
+
+.name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.deadline {
+  color: #3383FB;
+}
+
+.profit {
+  font-weight: 600;
+}
+
+.finance-buttons {
+  grid-column: 10 / 13;
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.income {
+  flex: 1;
+  padding: 8px 0;
+  background: #2EB352;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.expense-btn {
+  flex: 1;
+  padding: 8px 0;
+  background: #EC1A23;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.income:hover {
+  background: #27a049;
+}
+
+.expense-btn:hover {
+  background: #d0171f;
+}
+
+/* Фильтры */
+.row {
+  display: flex;
+  align-items: center;
+}
+
+.between {
+  justify-content: space-between;
+}
+
+.filters-row {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter {
+  padding: 4px 10px;
+  font-size: 10px;
+  background: white;
+  border: 1px solid #d8d8d8;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.filter.active {
+  background: #3383FB;
+  color: white;
+}
+
+.download-projects button {
+  padding: 5px 12px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: none;
+  background: #3383FB;
+  color: white;
+}
+
+.bottom-button {
+  width: 100%;
+  margin-top: 1%;
+}
+
+.bottom-button button {
+  font-family: "Manrope";
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 150%;
+  background-color:#446BFA;
+  color: #FFFFFF;
+  outline: none;
+  border: none;
+  border-radius: 16px;
+  width: 100%;
+  padding: 20px;
+}
+
+.bottom-button button a {
+  text-decoration: none;
+  color: #FFFFFF;
+}
+
+.bottom-button button:hover {
+  cursor: pointer;
+}
+
+/* Модальные окна */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  z-index: 1000;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.modal {
+  width: 100%;
+  max-width: 755px;
+  background: white;
+  border-radius: 10px;
+  margin: auto;
+}
 
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-
   padding: 18px 25px;
   border-bottom: 1px solid #BBBBBB;
-
   font-size: 20px;
 }
 
@@ -404,8 +799,6 @@ const highlights = ref([
   font-size: 20px;
   cursor: pointer;
 }
-
-/* body */
 
 .modal-body {
   padding: 25px;
@@ -436,8 +829,6 @@ const highlights = ref([
   padding: 0 10px;
 }
 
-/* textarea */
-
 textarea {
   width: 100%;
   margin-top: 20px;
@@ -448,8 +839,6 @@ textarea {
   padding: 10px;
   resize: none;
 }
-
-/* footer */
 
 .modal-footer {
   display: flex;
@@ -479,185 +868,196 @@ textarea {
   border-radius: 4px;
 }
 
-template {
-    height: 100vh;
-}
-.bottom-button {
+/* Адаптивность */
+@media (max-width: 768px) {
+  .nav-component {
+    display: none !important;
+  }
+
+  .page-title {
+    display: block;
+  }
+
+  #main {
+    padding: 15px 0;
+  }
+
+  .filters {
+    padding: 0 20px;
+  }
+
+  .filters-row {
+    gap: 5px;
+  }
+
+  .filter {
+    font-size: 9px;
+    padding: 3px 8px;
+  }
+
+  .filter-add {
+    display: none;
+  }
+
+  .download-projects {
+    display: none;
+  }
+
+  .mobile-search {
+    display: block;
+  }
+
+  .mobile-add-btn {
+    display: flex;
+  }
+
+  .desktop-table {
+    display: none;
+  }
+
+  .desktop-btn {
+    display: none;
+  }
+
+  .mobile-projects {
+    display: flex;
+  }
+
+  /* Адаптация модальных окон */
+  .modal-overlay {
+    padding: 10px;
+    align-items: flex-start;
+  }
+
+  .modal {
     width: 100%;
-    margin-top: 1%;
-}
-.bottom-button button {
-    font-family: "Manrope";
-    font-weight: 400;
-    font-style: "Regular";
-    font-size: 22px;
-    line-height: 150%;
-    letter-spacing: 0%;
-    background-color:#446BFA;
-    color: #FFFFFF;
-    outline: none;
-    border: none;
-    border-radius: 16px;
-    width: 100%;
+    max-width: 100%;
+    margin: 10px 0;
+    border-radius: 10px;
+  }
+
+  .modal-header {
+    padding: 14px 20px;
+    font-size: 16px;
+  }
+
+  .modal-body {
     padding: 20px;
-}
-.bottom-button button a {
-    text-decoration: none;
-    color: #FFFFFF;
-}
-.bottom-button button:hover {
-    cursor: pointer;
-}
-#main {
-  padding: 20px;
-  background: #F1F4FF;
-}
+  }
 
-/* контейнер */
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
 
-.projects-container {
-  margin-top: 40px;
-  background: white;
-  border: 1px solid #BBBBBB;
-  border-radius: 15px;
-  overflow: hidden;
-}
+  .field label {
+    font-size: 13px;
+  }
 
-/* grid колонок */
+  .field input,
+  .field select {
+    height: 38px;
+    font-size: 14px;
+  }
 
-.grid {
-  display: grid;
+  textarea {
+    height: 100px;
+    font-size: 14px;
+  }
 
-  grid-template-columns:
-  minmax(180px, 2fr)   /* название */
-  minmax(80px, 1fr)
-  minmax(80px, 1fr)
-  minmax(90px, 1fr)
-  minmax(100px, 1fr)
-  minmax(100px, 1fr)
-  minmax(100px, 1fr)
-  minmax(100px, 1fr)
-  minmax(110px, 1fr)
-  minmax(100px, 1fr)
-  minmax(90px, 1fr)
-  minmax(100px, 1fr);
+  .modal-footer {
+    flex-wrap: wrap;
+    padding: 15px 20px;
+    gap: 8px;
+  }
 
-  align-items: center;
+  .save,
+  .cancel,
+  .delete {
+    flex: 1;
+    min-width: 80px;
+    padding: 10px 12px;
+    font-size: 13px;
+    text-align: center;
+  }
 }
 
-/* header */
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 16px;
+  }
 
-.projects-header {
-  background: #DBE1F6;
-  font-weight: 500;
-  font-size: 14px;
-  padding: 15px 20px;
-  border-bottom: 1px solid #BBBBBB;
-}
+  .filters {
+    padding: 0 10px;
+  }
 
-/* строка */
+  .mobile-search {
+    margin: 0 10px 15px;
+  }
 
-.project-row {
-  padding: 15px 20px;
-  border-bottom: 1px solid #BBBBBB;
-  font-size: 14px;
-  color: rgba(0,0,0,0.7);
-}
-.finance-buttons {
-  grid-column: 10 / 13; /* колонки Выручка - Прибыль */
+  .mobile-add-btn {
+    top: 60px;
+    right: 10px;
+  }
 
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
-.income {
-  flex: 1;
-  padding: 8px 0;
-  background: #2EB352;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  font-size: 12px;
-  cursor: pointer;
-}
-.expense-btn {
-  flex: 1;
-  padding: 8px 0;
-  background: #EC1A23;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  font-size: 12px;
-  cursor: pointer;
-}
+  .mobile-project-card {
+    padding: 12px 15px;
+  }
 
-.income:hover {
-  background: #27a049;
-}
+  .mobile-project-name {
+    font-size: 12px;
+  }
 
-.expense-btn:hover {
-  background: #d0171f;
-}
+  .mobile-project-deadline span {
+    font-size: 12px;
+  }
 
-.project-row:last-child {
-  border-bottom: none;
-}
+  .finance-value {
+    font-size: 12px;
+  }
 
-/* название */
+  /* Адаптация модальных окон для маленьких экранов */
+  .modal-overlay {
+    padding: 5px;
+  }
 
-.name {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
+  .modal-header {
+    padding: 12px 15px;
+    font-size: 15px;
+  }
 
-/* дедлайн */
+  .modal-body {
+    padding: 15px;
+  }
 
-.deadline {
-  color: #3383FB;
-}
+  .form-grid {
+    gap: 12px;
+  }
 
-/* прибыль */
+  .field label {
+    font-size: 12px;
+  }
 
-.profit {
-  font-weight: 600;
-}
+  .field input,
+  .field select {
+    height: 36px;
+    font-size: 13px;
+  }
 
-/* фильтры */
+  textarea {
+    height: 80px;
+  }
 
-.row {
-  display: flex;
-  align-items: center;
-}
+  .modal-footer {
+    padding: 12px 15px;
+    flex-direction: column;
+  }
 
-.between {
-  justify-content: space-between;
-}
-
-.filters-row {
-  gap: 10px;
-}
-
-.filter {
-  padding: 4px 10px;
-  font-size: 10px;
-  background: white;
-  border: 1px solid #d8d8d8;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.filter.active {
-  background: #3383FB;
-  color: white;
-}
-
-.download-projects button {
-  padding: 5px 12px;
-  font-size: 12px;
-  border-radius: 4px;
-  border: none;
-  background: #3383FB;
-  color: white;
+  .save,
+  .cancel,
+  .delete {
+    width: 100%;
+    min-width: auto;
+  }
 }
 </style>
