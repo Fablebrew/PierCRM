@@ -243,7 +243,7 @@ body {
     display: flex;
 }
 .left_content {
-    background: url("@/assets/img/enter.jpg");
+    background: url("@/assets/img/enter.png");
 }
 .left_side {
     width: 30%;

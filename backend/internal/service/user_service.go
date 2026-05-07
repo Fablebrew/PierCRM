@@ -1,7 +1,7 @@
 package service
 
 import (
-	"context"
+	"errors"
 	"finances/internal/models"
 	"finances/internal/repository"
 
@@ -11,21 +11,30 @@ import (
 type UserService struct {
 	repo *repository.UserRepository
 }
+
 type RegisterInput struct {
-	Email          string
-	Name           string
-	BusinessForm   string
-	NalogSystem    string
-	Employees      string
-	BusinessSphere string
-	Password       string
+	Email          string `json:"email"`
+	Name           string `json:"name"`
+	BusinessForm   string `json:"business_form"`
+	NalogSystem    string `json:"nalog_system"`
+	Employees      string `json:"employees"`
+	BusinessSphere string `json:"business_sphere"`
+	Password       string `json:"password"`
 }
 
 func NewUserService(repo *repository.UserRepository) *UserService {
 	return &UserService{repo: repo}
 }
 
-func (s *UserService) Register(ctx context.Context, input RegisterInput) (*models.User, error) {
+// Убрали context.Context из параметров
+func (s *UserService) Register(input RegisterInput) (*models.UserResponse, error) {
+	// Проверяем, не занят ли email
+	existing, _ := s.repo.GetByEmail(input.Email)
+	if existing != nil && existing.ID != 0 {
+		return nil, errors.New("email already exists")
+	}
+
+	// Хешируем пароль
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
@@ -38,13 +47,24 @@ func (s *UserService) Register(ctx context.Context, input RegisterInput) (*model
 		NalogSystem:    input.NalogSystem,
 		Employees:      input.Employees,
 		BusinessSphere: input.BusinessSphere,
-		Password:       string(hashedPassword),
+		PasswordHash:   string(hashedPassword), // Правильное поле: PasswordHash, не Password
 	}
 
-	err = s.repo.Create(ctx, user)
+	// Убрали context.Context из вызова Create
+	err = s.repo.Create(user)
 	if err != nil {
 		return nil, err
 	}
 
-	return user, nil
+	// Возвращаем UserResponse
+	return &models.UserResponse{
+		ID:             user.ID,
+		Name:           user.Name,
+		Email:          user.Email,
+		BusinessForm:   user.BusinessForm,
+		BusinessSphere: user.BusinessSphere,
+		Employees:      user.Employees,
+		NalogSystem:    user.NalogSystem,
+		CreatedAt:      user.CreatedAt,
+	}, nil
 }

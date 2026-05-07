@@ -1,0 +1,29 @@
+POST /api/team - Создать члена команды
+
+GET /api/team - Получить всех членов команды
+
+GET /api/team/:id - Получить члена команды по ID
+
+PUT /api/team/:id - Обновить члена команды
+
+DELETE /api/team/:id - Удалить члена команды
+
+POST /api/team/bulk-delete - Массовое удаление
+=========================================================
+
+# Подключение к БД в контейнере
+docker exec -it finances-db psql -U postgres
+
+# Просмотр логов конкретного сервиса
+docker-compose logs -f backend
+docker-compose logs -f frontend
+docker-compose logs -f db
+
+# Перезапуск конкретного сервиса
+docker-compose restart backend
+
+# Вход в контейнер
+docker exec -it finances-backend sh
+docker exec -it finances-frontend sh
+
+==========================================================

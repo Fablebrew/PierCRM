@@ -1,7 +1,7 @@
 package service
 
 import (
-	"context"
+	"errors"
 	"finances/internal/repository"
 	"time"
 
@@ -22,14 +22,16 @@ func NewAuthService(repo *repository.UserRepository, secret string) *AuthService
 }
 
 // Login проверяет пользователя и возвращает JWT
-func (s *AuthService) Login(ctx context.Context, email, password string) (string, error) {
-	user, err := s.userRepo.GetByEmail(ctx, email)
+func (s *AuthService) Login(email, password string) (string, error) {
+	// Убрали context.Context из вызова GetByEmail
+	user, err := s.userRepo.GetByEmail(email)
 	if err != nil {
-		return "", err
+		return "", errors.New("invalid email or password")
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return "", err
+	// Используем PasswordHash вместо Password
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password)); err != nil {
+		return "", errors.New("invalid email or password")
 	}
 
 	// Создаём JWT

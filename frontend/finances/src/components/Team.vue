@@ -106,72 +106,137 @@ export default {
         phone: '',
         role: ''
       },
-      team: [
-        {
-          name: "Влада Насанович",
-          email: "vlada@mail.com",
-          phone: "+375291111111",
-          role: "Веб-дизайнер"
-        },
-        {
-          name: "Сергей Иванов",
-          email: "serhei@mail.com",
-          phone: "+375291111111",
-          role: "Программист"
-        },
-        {
-          name: "Анастасия Высоцкая",
-          email: "anastasiya@mail.com",
-          phone: "+375291111111",
-          role: "Копирайтер"
-        },
-        {
-          name: "Анатолий Петров",
-          email: "anatoliy@mail.com",
-          phone: "+375291111111",
-          role: "Рилсмейкер"
-        }
-      ]
+      team: []
     }
   },
   methods: {
-    addMember() {
-      if(this.newMember.name && this.newMember.email) {
-
-        if(this.editingIndex !== null) {
-          // ✏️ редактирование
-          this.team[this.editingIndex] = { ...this.newMember };
-        } else {
-          // ➕ создание
-          this.team.push({
-            ...this.newMember,
-            id: Date.now()
-          });
+    // Замените метод fetchTeamMembers
+    async fetchTeamMembers() {
+      try {
+        const token = localStorage.getItem('token')
+        if (!token) {
+          console.error('No token found')
+          return
         }
-
-        // сброс
-        this.newMember = {
-          name: '',
-          email: '',
-          phone: '',
-          role: ''
-        };
-
-        this.editingIndex = null;
-        this.showModal = false;
-
+        
+        // Убираем credentials: 'include' и Content-Type для GET запроса
+        const response = await fetch('http://localhost:8080/api/team', {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        })
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            localStorage.removeItem('token')
+            window.location.href = '/login'
+            return
+          }
+          throw new Error(`HTTP error! status: ${response.status}`)
+        }
+        
+        const data = await response.json()
+        this.team = data.members || []
+      } catch (error) {
+        console.error('Error fetching team members:', error)
+      }
+    },
+    
+      async addMember() {
+      if(this.newMember.name && this.newMember.email) {
+        try {
+          const token = localStorage.getItem('token')
+          if (!token) {
+            window.location.href = '/login'
+            return
+          }
+          
+          let response;
+          
+          if(this.editingIndex !== null) {
+            const member = this.team[this.editingIndex];
+            response = await fetch(`http://localhost:8080/api/team/${member.id}`, {
+              method: 'PUT',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify(this.newMember)
+            });
+          } else {
+            response = await fetch('http://localhost:8080/api/team', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify(this.newMember)
+            });
+          }
+          
+          if (response.ok) {
+            await this.fetchTeamMembers();
+            
+            this.newMember = {
+              name: '',
+              email: '',
+              phone: '',
+              role: ''
+            };
+            this.editingIndex = null;
+            this.showModal = false;
+          } else {
+            const error = await response.json();
+            alert(error.error || 'Ошибка при сохранении');
+          }
+        } catch (error) {
+          console.error('Error saving team member:', error);
+          alert('Ошибка при сохранении');
+        }
       } else {
         alert('Введите имя и email');
       }
     },
+    
     editMember(index) {
       this.editingIndex = index;
-
-      // копируем данные в форму
       this.newMember = { ...this.team[index] };
-
       this.showModal = true;
+    },
+    
+    async deleteMember(index) {
+      if (confirm('Вы уверены, что хотите удалить этого сотрудника?')) {
+        try {
+          const token = localStorage.getItem('token')
+          const member = this.team[index];
+          
+          const response = await fetch(`/api/team/${member.id}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+          
+          if (response.ok) {
+            this.team.splice(index, 1);
+          } else {
+            const error = await response.json();
+            alert(error.error || 'Ошибка при удалении');
+          }
+        } catch (error) {
+          console.error('Error deleting team member:', error);
+          alert('Ошибка при удалении');
+        }
+      }
     }
+  },
+  
+  mounted() {
+    this.fetchTeamMembers();
   }
 }
 </script>

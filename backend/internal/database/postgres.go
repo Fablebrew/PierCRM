@@ -12,35 +12,52 @@ import (
 )
 
 func NewPostgres() (*pgxpool.Pool, error) {
-	err := godotenv.Load()
-	if err != nil {
-		log.Println("No .env file found")
+	// Загружаем .env только если он существует (для локальной разработки)
+	// В Docker переменные окружения уже установлены
+	if err := godotenv.Load(); err != nil {
+		log.Println("No .env file found, using system environment variables")
 	}
 
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
-	user := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
-	dbname := os.Getenv("DB_NAME")
+	host := getEnvOrDefault("DB_HOST", "localhost")
+	port := getEnvOrDefault("DB_PORT", "5432")
+	user := getEnvOrDefault("DB_USER", "postgres")
+	password := getEnvOrDefault("DB_PASSWORD", "postgres")
+	dbname := getEnvOrDefault("DB_NAME", "postgres")
 
 	dsn := fmt.Sprintf(
-		"postgres://%s:%s@%s:%s/%s?sslmode=disable",
+		"postgres://%s:%s@%s:%s/%s?sslmode=disable&connect_timeout=10",
 		user, password, host, port, dbname,
 	)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	// Пытаемся подключиться с повторными попытками
+	var pool *pgxpool.Pool
+	var err error
 
-	pool, err := pgxpool.New(ctx, dsn)
-	if err != nil {
-		return nil, fmt.Errorf("unable to create pool: %w", err)
+	for i := 0; i < 10; i++ {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+
+		pool, err = pgxpool.New(ctx, dsn)
+		if err == nil {
+			if pingErr := pool.Ping(ctx); pingErr == nil {
+				cancel()
+				fmt.Println("✅ Connected to PostgreSQL")
+				return pool, nil
+			} else {
+				pool.Close()
+			}
+		}
+
+		cancel()
+		log.Printf("Waiting for database... attempt %d/10", i+1)
+		time.Sleep(2 * time.Second)
 	}
 
-	if err := pool.Ping(ctx); err != nil {
-		return nil, fmt.Errorf("unable to ping db: %w", err)
+	return nil, fmt.Errorf("unable to connect to database after 10 attempts: %w", err)
+}
+
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
 	}
-
-	fmt.Println("✅ Connected to PostgreSQL")
-
-	return pool, nil
+	return defaultValue
 }

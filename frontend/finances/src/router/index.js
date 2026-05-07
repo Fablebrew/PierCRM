@@ -27,12 +27,13 @@ const routes = [
   {
     path: '/workspace',
     name: 'workspace',
-    // meta: { requiresAuth: true },
+    meta: { requiresAuth: true },
     component: Workspace
   },
   {
     path: '/projects',
     name: 'projects',
+    meta: { requiresAuth: true },
     component: Projects
   },
   {
@@ -51,20 +52,39 @@ const router = createRouter({
   history: createWebHistory(),
   routes
 })
+
+// Проверка срока действия токена
+function isTokenExpired(token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    return payload.exp * 1000 < Date.now()
+  } catch (e) {
+    return true // если не можем прочитать - считаем просроченным
+  }
+}
+
 router.beforeEach((to) => {
   const token = localStorage.getItem('token')
 
-  // если маршрут требует авторизацию и токена нет
-  if (to.meta.requiresAuth && !token) {
+  // Проверяем токен на срок действия
+  if (token && isTokenExpired(token)) {
+    localStorage.removeItem('token')
+  }
+
+  const validToken = localStorage.getItem('token')
+
+  // Если маршрут требует авторизацию и токена нет
+  if (to.meta.requiresAuth && !validToken) {
     return '/login'
   }
 
-  // если пользователь уже авторизован и идёт на login
-  if (to.path === '/login' && token) {
+  // Если пользователь уже авторизован и идёт на login
+  if (to.path === '/login' && validToken) {
     return '/workspace'
   }
 
-  // иначе разрешаем переход
+  // Иначе разрешаем переход
   return true
 })
+
 export default router

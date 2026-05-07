@@ -12,14 +12,35 @@
       <div class="row between">
 
         <div class="filters-row row">
-          <button class="filter active">По умолчанию</button>
-          <button class="filter">Этап</button>
-          <button class="filter">Дата создания</button>
-          <button class="filter">Дата изменения</button>
-          <button class="filter">До дедлайна</button>
-          <button class="filter">Исполнитель</button>
-          <button class="filter">Период</button>
-          <button class="filter filter-add">
+          <button 
+            class="filter" 
+            :class="{ active: activeFilter === 'created_at' }"
+            @click="setFilter('created_at')">По умолчанию</button>
+          <button 
+            class="filter" 
+            :class="{ active: activeFilter === 'stage' }"
+            @click="setFilter('stage')">Этап</button>
+          <button 
+            class="filter" 
+            :class="{ active: activeFilter === 'created_at' && filterOrder === 'asc' }"
+            @click="setFilter('created_at', 'asc')">Дата создания</button>
+          <button 
+            class="filter" 
+            :class="{ active: activeFilter === 'updated_at' }"
+            @click="setFilter('updated_at')">Дата изменения</button>
+          <button 
+            class="filter" 
+            :class="{ active: activeFilter === 'deadline' }"
+            @click="setFilter('deadline')">До дедлайна</button>
+          <button 
+            class="filter" 
+            :class="{ active: activeFilter === 'priority' }"
+            @click="setFilter('priority')">Приоритет</button>
+          <button 
+            class="filter" 
+            :class="{ active: activeFilter === 'executor' }"
+            @click="setFilter('executor')">Исполнитель</button>
+          <button class="filter filter-add" @click="openCreateModal">
             <img src="@/assets/img/Vector.svg" alt="add_project">
           </button>
         </div>
@@ -34,11 +55,17 @@
     <!-- Поиск для мобильных -->
     <div class="mobile-search">
       <span class="search-icon-mob">🔍</span>
-      <input type="text" placeholder="Поиск" class="search-input-mob">
+      <input 
+        v-model="searchQuery" 
+        @input="onSearch" 
+        type="text" 
+        placeholder="Поиск по названию" 
+        class="search-input-mob"
+      >
     </div>
 
     <!-- Кнопка для мобильных -->
-    <button class="mobile-add-btn" @click="showModal = true">
+    <button class="mobile-add-btn" @click="openCreateModal">
       <span>+</span>
     </button>
 
@@ -75,11 +102,11 @@
         <div>{{ project.priority }}</div>
         <div>{{ project.stage }}</div>
         <div>{{ project.start }}</div>
-        <div class="deadline">{{ project.deadline }}</div>
+        <div class="deadline">{{ project.days_left }} дн.</div>
         <div>{{ project.cost }}</div>
         <div>{{ project.paid }}</div>
         <div>{{ project.remainder }}</div>
-        <div>{{ project.otherIncome }}</div>
+        <div>{{ project.other_income }}</div>
 
         <div>{{ project.revenue }}</div>
         <div>{{ project.expense }}</div>
@@ -104,7 +131,7 @@
           <h3 class="mobile-project-name">{{ project.name }}</h3>
           <div class="mobile-project-deadline">
             <span class="calendar-icon">📅</span>
-            <span>{{ project.deadline }}</span>
+            <span>{{ project.days_left }} дн.</span>
           </div>
         </div>
 
@@ -142,15 +169,15 @@
     </div>
 
     <div class="bottom-button desktop-btn">
-      <button @click="showModal = true"><a href="#">Создать проект</a></button>
+      <button @click="openCreateModal">Создать проект</button>
     </div>
   </section>
 
-  <!-- Модальное окно создания проекта -->
+  <!-- Модальное окно создания/редактирования проекта -->
   <div v-if="showModal" class="modal-overlay" @click.self="showModal = false">
     <div class="modal">
       <div class="modal-header">
-        <span>Создать проект</span>
+        <span>{{ editingIndex !== null ? 'Редактировать проект' : 'Создать проект' }}</span>
         <button class="close" @click="showModal = false">✕</button>
       </div>
 
@@ -158,12 +185,12 @@
         <div class="form-grid">
           <div class="field">
             <label>Название проекта</label>
-            <input type="text">
+            <input v-model="newProject.name" type="text" placeholder="Введите название">
           </div>
 
           <div class="field">
             <label>Приоритет</label>
-            <select>
+            <select v-model="newProject.priority">
               <option>Низкий</option>
               <option>Средний</option>
               <option>Высокий</option>
@@ -171,65 +198,64 @@
           </div>
           <div class="field">
             <label>Этап</label>
-            <input type="text">
+            <input v-model="newProject.stage" type="text" placeholder="Например: Дизайн">
           </div>
 
           <div class="field">
             <label>Начало проекта</label>
-            <input type="date">
+            <input v-model="newProject.start" type="date">
           </div>
 
           <div class="field">
             <label>Конец проекта</label>
-            <input type="date">
+            <input v-model="newProject.end_date" type="date">
           </div>
 
           <div class="field">
             <label>Стоимость</label>
-            <input type="number">
+            <input v-model="newProject.cost" type="text" placeholder="35000">
           </div>
 
           <div class="field">
             <label>Оплачено</label>
-            <select>
-              <option value="">Да</option>
-              <option value="">Нет</option>
-            </select>
+            <input v-model="newProject.paid" type="text" placeholder="25000">
           </div>
 
           <div class="field">
             <label>Заказчик</label>
-            <input type="text">
+            <input v-model="newProject.customer" type="text" placeholder="Имя заказчика">
           </div>
 
           <div class="field">
             <label>Исполнитель</label>
-            <input type="text">
+            <input v-model="newProject.executor" type="text" placeholder="Имя исполнителя">
           </div>
           <div class="field">
             <label>Налоговая ставка</label>
-            <select>
-              <option value="">6%</option>
-              <option value="">12%</option>
+            <select v-model="newProject.tax_rate">
+              <option value="">Выберите</option>
+              <option value="6%">6%</option>
+              <option value="12%">12%</option>
             </select>
           </div>
           <div class="field">
             <label>Счет</label>
-            <select>
-              <option value="">Карта тинька</option>
-              <option value="">Сбер 1</option>
-              <option value="">Сбер 2</option>
+            <select v-model="newProject.account">
+              <option value="">Выберите</option>
+              <option value="Карта тинька">Карта тинька</option>
+              <option value="Сбер 1">Сбер 1</option>
+              <option value="Сбер 2">Сбер 2</option>
             </select>
           </div>
         </div>
 
-        <textarea placeholder="Описание проекта"></textarea>
+        <textarea v-model="newProject.description" placeholder="Описание проекта"></textarea>
       </div>
 
       <div class="modal-footer">
-        <button class="save">Сохранить</button>
+        <button class="save" @click="saveProject">Сохранить</button>
         <button class="cancel" @click="showModal = false">Отменить</button>
-        <button class="delete">Удалить данные</button>
+        <button class="delete" @click="resetForm">Очистить</button>
       </div>
     </div>
   </div>
@@ -251,21 +277,22 @@
 
           <div class="field">
             <label>Счет</label>
-            <select>
-              <option>Не выбрано</option>
+            <select v-model="transactionForm.account">
+              <option value="">Не выбрано</option>
               <option>Карта тинька</option>
               <option>Сбер 1</option>
+              <option>Сбер 2</option>
             </select>
           </div>
 
           <div class="field">
             <label>Сумма</label>
-            <input type="number" placeholder="Не указано">
+            <input v-model="transactionForm.amount" type="text" placeholder="10000">
           </div>
 
           <div class="field">
             <label>Оплачено</label>
-            <select>
+            <select v-model="transactionForm.is_paid">
               <option>Не указано</option>
               <option>Да</option>
               <option>Нет</option>
@@ -274,22 +301,21 @@
 
           <div class="field">
             <label>Дата</label>
-            <input type="date">
+            <input v-model="transactionForm.date" type="date">
           </div>
 
           <div class="field">
             <label>Ответственный</label>
-            <input type="text" placeholder="Не указано">
+            <input v-model="transactionForm.responsible" type="text" placeholder="Не указано">
           </div>
         </div>
 
-        <textarea placeholder="Комментарий"></textarea>
+        <textarea v-model="transactionForm.comment" placeholder="Комментарий"></textarea>
       </div>
 
       <div class="modal-footer">
-        <button class="save">Сохранить</button>
+        <button class="save" @click="saveTransaction('income')">Сохранить</button>
         <button class="cancel" @click="showIncomeModal=false">Отменить</button>
-        <button class="delete">Удалить данные</button>
       </div>
     </div>
   </div>
@@ -311,21 +337,22 @@
 
           <div class="field">
             <label>Счет</label>
-            <select>
-              <option>Не выбрано</option>
+            <select v-model="transactionForm.account">
+              <option value="">Не выбрано</option>
               <option>Карта тинька</option>
               <option>Сбер 1</option>
+              <option>Сбер 2</option>
             </select>
           </div>
 
           <div class="field">
             <label>Стоимость</label>
-            <input type="number" placeholder="Не указано">
+            <input v-model="transactionForm.amount" type="text" placeholder="5000">
           </div>
 
           <div class="field">
             <label>Оплачено</label>
-            <select>
+            <select v-model="transactionForm.is_paid">
               <option>Не указано</option>
               <option>Да</option>
               <option>Нет</option>
@@ -334,22 +361,21 @@
 
           <div class="field">
             <label>Дата</label>
-            <input type="date">
+            <input v-model="transactionForm.date" type="date">
           </div>
 
           <div class="field">
             <label>Исполнитель</label>
-            <input type="text" placeholder="Не указано">
+            <input v-model="transactionForm.responsible" type="text" placeholder="Не указано">
           </div>
         </div>
 
-        <textarea placeholder="Комментарий"></textarea>
+        <textarea v-model="transactionForm.comment" placeholder="Комментарий"></textarea>
       </div>
 
       <div class="modal-footer">
-        <button class="save">Сохранить</button>
+        <button class="save" @click="saveTransaction('expense')">Сохранить</button>
         <button class="cancel" @click="showExpenseModal=false">Отменить</button>
-        <button class="delete">Удалить данные</button>
       </div>
     </div>
   </div>
@@ -360,10 +386,7 @@ import Header from './Header.vue';
 import Nav from './Nav.vue';
 
 export default {
-  components: {
-    Header,
-    Nav,
-  },
+  components: { Header, Nav },
   name: "Projects",
   data() {
     return {
@@ -371,693 +394,295 @@ export default {
       showIncomeModal: false,
       showExpenseModal: false,
       currentProject: null,
-      projects: [
-        { name: "Журнал Эксперт", priority: "Высокий", stage: "Дизайн", start: "30.07.2024", deadline: "51 день", cost: "35.000 р.", paid: "25.000 р.", remainder: "10.000 р.", otherIncome: "10.000 р.", revenue: "45.000 р.", expense: "5.000 р.", profit: "40.000 р." },
-        { name: "Дизайн сайта", priority: "Средний", stage: "Верстка", start: "21.07.2024", deadline: "55 дней", cost: "75.000 р.", paid: "25.000 р.", remainder: "10.000 р.", otherIncome: "10.000 р.", revenue: "45.000 р.", expense: "5.000 р.", profit: "40.000 р." },
-        { name: "Дизайн приложения", priority: "Низкий", stage: "Дизайн", start: "14.08.2024", deadline: "81 день", cost: "95.600 р.", paid: "25.000 р.", remainder: "10.000 р.", otherIncome: "10.000 р.", revenue: "45.000 р.", expense: "5.000 р.", profit: "40.000 р." },
-      ]
-    };
+      editingIndex: null,
+      activeFilter: 'created_at',
+      filterOrder: 'desc',
+      searchQuery: '',
+      searchTimeout: null,
+      newProject: {
+        name: '', priority: 'Средний', stage: '', start: '', deadline: '',
+        cost: '', paid: '', other_income: '', revenue: '', expense: '', profit: '',
+        description: '', customer: '', executor: '', tax_rate: '', account: '', end_date: ''
+      },
+      transactionForm: {
+        account: '', amount: '', is_paid: 'Не указано', date: '', responsible: '', comment: ''
+      },
+      projects: []
+    }
   },
   methods: {
+    async fetchProjects() {
+      try {
+        const token = localStorage.getItem('token')
+        let url = `http://localhost:8080/api/projects?sort_by=${this.activeFilter}&order=${this.filterOrder}`
+        
+        if (this.searchQuery) {
+          url += `&search=${encodeURIComponent(this.searchQuery)}`
+        }
+        
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        const data = await res.json()
+        this.projects = data.projects || []
+      } catch (error) {
+        console.error('Error fetching projects:', error)
+      }
+    },
+
+    setFilter(sortBy, order = 'desc') {
+      this.activeFilter = sortBy
+      this.filterOrder = order
+      this.fetchProjects()
+    },
+
+    onSearch() {
+      clearTimeout(this.searchTimeout)
+      this.searchTimeout = setTimeout(() => {
+        this.fetchProjects()
+      }, 300)
+    },
+
+    openCreateModal() {
+      this.editingIndex = null
+      this.resetForm()
+      this.showModal = true
+    },
+
+    async saveProject() {
+      if (!this.newProject.name) {
+        alert('Введите название проекта')
+        return
+      }
+
+      try {
+        const token = localStorage.getItem('token')
+        const url = this.editingIndex !== null
+          ? `http://localhost:8080/api/projects/${this.projects[this.editingIndex].id}`
+          : 'http://localhost:8080/api/projects'
+        const method = this.editingIndex !== null ? 'PUT' : 'POST'
+
+        const res = await fetch(url, {
+          method,
+          headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify(this.newProject)
+        })
+
+        if (res.ok) {
+          await this.fetchProjects()
+          this.showModal = false
+          this.resetForm()
+        } else {
+          const error = await res.json()
+          alert(error.error || 'Ошибка при сохранении')
+        }
+      } catch (error) {
+        console.error('Error saving project:', error)
+        alert('Ошибка при сохранении')
+      }
+    },
+
+    editProject(index) {
+      this.editingIndex = index
+      this.newProject = { ...this.projects[index] }
+      this.showModal = true
+    },
+
+    async deleteProject(index) {
+      if (!confirm('Удалить проект?')) return
+      
+      try {
+        const token = localStorage.getItem('token')
+        const id = this.projects[index].id
+        await fetch(`http://localhost:8080/api/projects/${id}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        await this.fetchProjects()
+      } catch (error) {
+        console.error('Error deleting project:', error)
+      }
+    },
+
     openIncomeModal(project) {
       this.currentProject = project
+      this.resetTransactionForm()
       this.showIncomeModal = true
     },
+
     openExpenseModal(project) {
       this.currentProject = project
+      this.resetTransactionForm()
       this.showExpenseModal = true
     },
+
+    async saveTransaction(type) {
+      if (!this.transactionForm.amount) {
+        alert('Введите сумму')
+        return
+      }
+
+      try {
+        const token = localStorage.getItem('token')
+        const res = await fetch('http://localhost:8080/api/transactions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            project_id: this.currentProject.id,
+            type: type,
+            ...this.transactionForm
+          })
+        })
+
+        if (res.ok) {
+          this.showIncomeModal = false
+          this.showExpenseModal = false
+          this.resetTransactionForm()
+          await this.fetchProjects()
+        } else {
+          const error = await res.json()
+          alert(error.error || 'Ошибка при сохранении')
+        }
+      } catch (error) {
+        console.error('Error saving transaction:', error)
+        alert('Ошибка при сохранении')
+      }
+    },
+
+    resetForm() {
+      this.newProject = {
+        name: '', priority: 'Средний', stage: '', start: '', deadline: '',
+        cost: '', paid: '', other_income: '', revenue: '', expense: '', profit: '',
+        description: '', customer: '', executor: '', tax_rate: '', account: '', end_date: ''
+      }
+      this.editingIndex = null
+    },
+
+    resetTransactionForm() {
+      this.transactionForm = {
+        account: '', amount: '', is_paid: 'Не указано', date: '', responsible: '', comment: ''
+      }
+    }
   },
-};
+
+  mounted() {
+    this.fetchProjects()
+  }
+}
 </script>
 
 <style scoped>
-/* Базовые стили */
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
+.page-title { text-align: center; font-family: "Manrope"; font-weight: 600; font-size: 18px; line-height: 140%; color: rgba(0, 0, 0, 0.7); margin-bottom: 20px; display: none; }
+.mobile-add-btn { display: none; position: absolute; top: 70px; right: 20px; width: 25px; height: 25px; border-radius: 4px; background: #3383FB; color: white; border: none; font-size: 25px; cursor: pointer; z-index: 10; align-items: center; justify-content: center; line-height: 1; }
+.mobile-add-btn span { line-height: 1; }
+.mobile-search { display: none; position: relative; margin: 0 20px 20px; }
+.search-icon-mob { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; z-index: 1; }
+.search-input-mob { width: 100%; height: 40px; border-radius: 29px; border: 0.5px solid #BBBBBB; background: #FFFFFF; padding: 0 16px 0 40px; font-family: 'Onest'; font-size: 12px; color: #696969; }
+.mobile-projects { display: none; flex-direction: column; gap: 0; margin-top: 20px; }
+.mobile-project-card { background: #FFFFFF; padding: 15px 20px; border-bottom: 1px solid #D7D7D7; }
+.mobile-project-card:last-child { border-bottom: none; }
+.mobile-project-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.mobile-project-name { font-family: 'Manrope'; font-weight: 700; font-size: 14px; line-height: 140%; color: rgba(0, 0, 0, 0.7); margin: 0; }
+.mobile-project-deadline { display: flex; align-items: center; gap: 5px; }
+.calendar-icon { font-size: 14px; }
+.mobile-project-deadline span { font-family: 'Manrope'; font-weight: 300; font-size: 14px; color: #494A4D; }
+.mobile-project-stage { display: flex; flex-direction: column; gap: 3px; margin-bottom: 15px; }
+.stage-label { font-family: 'Manrope'; font-weight: 300; font-size: 9px; color: rgba(0, 0, 0, 0.7); }
+.stage-progress { display: flex; gap: 2px; }
+.progress-dot { width: 13px; height: 13px; background: #E8EAF2; border-radius: 1px; }
+.progress-dot.active { background: #8DCD94; }
+.mobile-project-finance { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+.finance-item { display: flex; flex-direction: column; gap: 2px; }
+.finance-label { font-family: 'Manrope'; font-weight: 300; font-size: 9px; color: rgba(0, 0, 0, 0.7); }
+.finance-value { font-family: 'Manrope'; font-weight: 500; font-size: 14px; color: rgba(0, 0, 0, 0.7); }
+.profit-item .finance-value { color: #3383FB; }
+.mobile-project-buttons { display: flex; gap: 10px; }
+.mobile-project-buttons .income, .mobile-project-buttons .expense-btn { flex: 1; padding: 9px 0; border: none; border-radius: 4px; color: white; font-family: 'Manrope'; font-weight: 400; font-size: 12px; cursor: pointer; text-align: center; }
+#main { padding: 20px; background: #F1F4FF; min-height: 100vh; position: relative; }
+.projects-container { margin-top: 40px; background: white; border: 1px solid #BBBBBB; border-radius: 15px; overflow: hidden; }
+.grid { display: grid; grid-template-columns: minmax(180px, 2fr) minmax(80px, 1fr) minmax(80px, 1fr) minmax(90px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(100px, 1fr) minmax(110px, 1fr) minmax(100px, 1fr) minmax(90px, 1fr) minmax(100px, 1fr); align-items: center; }
+.projects-header { background: #DBE1F6; font-weight: 500; font-size: 14px; padding: 15px 20px; border-bottom: 1px solid #BBBBBB; }
+.project-row { padding: 15px 20px; border-bottom: 1px solid #BBBBBB; font-size: 14px; color: rgba(0,0,0,0.7); }
+.project-row:last-child { border-bottom: none; }
+.name { display: flex; align-items: center; gap: 10px; }
+.deadline { color: #3383FB; }
+.profit { font-weight: 600; }
+.finance-buttons { grid-column: 10 / 13; display: flex; gap: 10px; margin-top: 10px; }
+.income { flex: 1; padding: 8px 0; background: #2EB352; border: none; border-radius: 4px; color: white; font-size: 12px; cursor: pointer; }
+.expense-btn { flex: 1; padding: 8px 0; background: #EC1A23; border: none; border-radius: 4px; color: white; font-size: 12px; cursor: pointer; }
+.income:hover { background: #27a049; }
+.expense-btn:hover { background: #d0171f; }
+.row { display: flex; align-items: center; }
+.between { justify-content: space-between; }
+.filters-row { gap: 10px; flex-wrap: wrap; }
+.filter { padding: 4px 10px; font-size: 10px; background: white; border: 1px solid #d8d8d8; border-radius: 4px; cursor: pointer; transition: all 0.2s; }
+.filter.active { background: #3383FB; color: white; border-color: #3383FB; }
+.filter:hover:not(.active) { background: #e8e8e8; }
+.download-projects button { padding: 5px 12px; font-size: 12px; border-radius: 4px; border: none; background: #3383FB; color: white; cursor: pointer; }
+.bottom-button { width: 100%; margin-top: 1%; }
+.bottom-button button { font-family: "Manrope"; font-weight: 400; font-size: 22px; line-height: 150%; background-color:#446BFA; color: #FFFFFF; outline: none; border: none; border-radius: 16px; width: 100%; padding: 20px; cursor: pointer; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); backdrop-filter: blur(6px); display: flex; justify-content: center; align-items: flex-start; z-index: 1000; padding: 20px; overflow-y: auto; }
+.modal { width: 100%; max-width: 755px; background: white; border-radius: 10px; margin: auto; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 25px; border-bottom: 1px solid #BBBBBB; font-size: 20px; }
+.close { background: none; border: none; font-size: 20px; cursor: pointer; }
+.modal-body { padding: 25px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.field { display: flex; flex-direction: column; }
+.field label { font-size: 14px; margin-bottom: 6px; }
+.field input, .field select { height: 40px; border-radius: 6px; border: none; background: #F1F4FF; padding: 0 10px; }
+textarea { width: 100%; margin-top: 20px; height: 120px; border-radius: 6px; border: none; background: #F1F4FF; padding: 10px; resize: none; }
+.modal-footer { display: flex; gap: 10px; padding: 20px 25px; }
+.save { background: #3383FB; color: white; border: none; padding: 8px 18px; border-radius: 4px; cursor: pointer; }
+.cancel { background: #E9E9E9; border: none; padding: 8px 18px; border-radius: 4px; cursor: pointer; }
+.delete { border: 1px solid #3383FB; background: white; padding: 8px 18px; border-radius: 4px; cursor: pointer; }
 
-/* Заголовок страницы */
-.page-title {
-  text-align: center;
-  font-family: "Manrope";
-  font-weight: 600;
-  font-size: 18px;
-  line-height: 140%;
-  color: rgba(0, 0, 0, 0.7);
-  margin-bottom: 20px;
-  display: none;
-}
-
-/* Мобильная кнопка + */
-.mobile-add-btn {
-  display: none;
-  position: absolute;
-  top: 70px;
-  right: 20px;
-  width: 25px;
-  height: 25px;
-  border-radius: 4px;
-  background: #3383FB;
-  color: white;
-  border: none;
-  font-size: 25px;
-  cursor: pointer;
-  z-index: 10;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-}
-
-.mobile-add-btn span {
-  line-height: 1;
-}
-
-/* Поиск для мобильных */
-.mobile-search {
-  display: none;
-  position: relative;
-  margin: 0 20px 20px;
-}
-
-.search-icon-mob {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 14px;
-  z-index: 1;
-}
-
-.search-input-mob {
-  width: 100%;
-  height: 40px;
-  border-radius: 29px;
-  border: 0.5px solid #BBBBBB;
-  background: #FFFFFF;
-  padding: 0 16px 0 40px;
-  font-family: 'Onest';
-  font-size: 12px;
-  color: #696969;
-}
-
-/* Мобильные карточки проектов */
-.mobile-projects {
-  display: none;
-  flex-direction: column;
-  gap: 0;
-  margin-top: 20px;
-}
-
-.mobile-project-card {
-  background: #FFFFFF;
-  padding: 15px 20px;
-  border-bottom: 1px solid #D7D7D7;
-}
-
-.mobile-project-card:last-child {
-  border-bottom: none;
-}
-
-.mobile-project-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.mobile-project-name {
-  font-family: 'Manrope';
-  font-weight: 700;
-  font-size: 14px;
-  line-height: 140%;
-  color: rgba(0, 0, 0, 0.7);
-  margin: 0;
-}
-
-.mobile-project-deadline {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.calendar-icon {
-  font-size: 14px;
-}
-
-.mobile-project-deadline span {
-  font-family: 'Manrope';
-  font-weight: 300;
-  font-size: 14px;
-  color: #494A4D;
-}
-
-.mobile-project-stage {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  margin-bottom: 15px;
-}
-
-.stage-label {
-  font-family: 'Manrope';
-  font-weight: 300;
-  font-size: 9px;
-  color: rgba(0, 0, 0, 0.7);
-}
-
-.stage-progress {
-  display: flex;
-  gap: 2px;
-}
-
-.progress-dot {
-  width: 13px;
-  height: 13px;
-  background: #E8EAF2;
-  border-radius: 1px;
-}
-
-.progress-dot.active {
-  background: #8DCD94;
-}
-
-.mobile-project-finance {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 15px;
-}
-
-.finance-item {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.finance-label {
-  font-family: 'Manrope';
-  font-weight: 300;
-  font-size: 9px;
-  color: rgba(0, 0, 0, 0.7);
-}
-
-.finance-value {
-  font-family: 'Manrope';
-  font-weight: 500;
-  font-size: 14px;
-  color: rgba(0, 0, 0, 0.7);
-}
-
-.profit-item .finance-value {
-  color: #3383FB;
-}
-
-.mobile-project-buttons {
-  display: flex;
-  gap: 10px;
-}
-
-.mobile-project-buttons .income,
-.mobile-project-buttons .expense-btn {
-  flex: 1;
-  padding: 9px 0;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  font-family: 'Manrope';
-  font-weight: 400;
-  font-size: 12px;
-  cursor: pointer;
-  text-align: center;
-}
-
-/* Основные стили (десктоп) */
-#main {
-  padding: 20px;
-  background: #F1F4FF;
-  min-height: 100vh;
-  position: relative;
-}
-
-.projects-container {
-  margin-top: 40px;
-  background: white;
-  border: 1px solid #BBBBBB;
-  border-radius: 15px;
-  overflow: hidden;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns:
-    minmax(180px, 2fr)
-    minmax(80px, 1fr)
-    minmax(80px, 1fr)
-    minmax(90px, 1fr)
-    minmax(100px, 1fr)
-    minmax(100px, 1fr)
-    minmax(100px, 1fr)
-    minmax(100px, 1fr)
-    minmax(110px, 1fr)
-    minmax(100px, 1fr)
-    minmax(90px, 1fr)
-    minmax(100px, 1fr);
-  align-items: center;
-}
-
-.projects-header {
-  background: #DBE1F6;
-  font-weight: 500;
-  font-size: 14px;
-  padding: 15px 20px;
-  border-bottom: 1px solid #BBBBBB;
-}
-
-.project-row {
-  padding: 15px 20px;
-  border-bottom: 1px solid #BBBBBB;
-  font-size: 14px;
-  color: rgba(0,0,0,0.7);
-}
-
-.project-row:last-child {
-  border-bottom: none;
-}
-
-.name {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.deadline {
-  color: #3383FB;
-}
-
-.profit {
-  font-weight: 600;
-}
-
-.finance-buttons {
-  grid-column: 10 / 13;
-  display: flex;
-  gap: 10px;
-  margin-top: 10px;
-}
-
-.income {
-  flex: 1;
-  padding: 8px 0;
-  background: #2EB352;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.expense-btn {
-  flex: 1;
-  padding: 8px 0;
-  background: #EC1A23;
-  border: none;
-  border-radius: 4px;
-  color: white;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.income:hover {
-  background: #27a049;
-}
-
-.expense-btn:hover {
-  background: #d0171f;
-}
-
-/* Фильтры */
-.row {
-  display: flex;
-  align-items: center;
-}
-
-.between {
-  justify-content: space-between;
-}
-
-.filters-row {
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.filter {
-  padding: 4px 10px;
-  font-size: 10px;
-  background: white;
-  border: 1px solid #d8d8d8;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.filter.active {
-  background: #3383FB;
-  color: white;
-}
-
-.download-projects button {
-  padding: 5px 12px;
-  font-size: 12px;
-  border-radius: 4px;
-  border: none;
-  background: #3383FB;
-  color: white;
-}
-
-.bottom-button {
-  width: 100%;
-  margin-top: 1%;
-}
-
-.bottom-button button {
-  font-family: "Manrope";
-  font-weight: 400;
-  font-size: 22px;
-  line-height: 150%;
-  background-color:#446BFA;
-  color: #FFFFFF;
-  outline: none;
-  border: none;
-  border-radius: 16px;
-  width: 100%;
-  padding: 20px;
-}
-
-.bottom-button button a {
-  text-decoration: none;
-  color: #FFFFFF;
-}
-
-.bottom-button button:hover {
-  cursor: pointer;
-}
-
-/* Модальные окна */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  backdrop-filter: blur(6px);
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  z-index: 1000;
-  padding: 20px;
-  overflow-y: auto;
-}
-
-.modal {
-  width: 100%;
-  max-width: 755px;
-  background: white;
-  border-radius: 10px;
-  margin: auto;
-}
-
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 25px;
-  border-bottom: 1px solid #BBBBBB;
-  font-size: 20px;
-}
-
-.close {
-  background: none;
-  border: none;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-.modal-body {
-  padding: 25px;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-}
-
-.field label {
-  font-size: 14px;
-  margin-bottom: 6px;
-}
-
-.field input,
-.field select {
-  height: 40px;
-  border-radius: 6px;
-  border: none;
-  background: #F1F4FF;
-  padding: 0 10px;
-}
-
-textarea {
-  width: 100%;
-  margin-top: 20px;
-  height: 120px;
-  border-radius: 6px;
-  border: none;
-  background: #F1F4FF;
-  padding: 10px;
-  resize: none;
-}
-
-.modal-footer {
-  display: flex;
-  gap: 10px;
-  padding: 20px 25px;
-}
-
-.save {
-  background: #3383FB;
-  color: white;
-  border: none;
-  padding: 8px 18px;
-  border-radius: 4px;
-}
-
-.cancel {
-  background: #E9E9E9;
-  border: none;
-  padding: 8px 18px;
-  border-radius: 4px;
-}
-
-.delete {
-  border: 1px solid #3383FB;
-  background: white;
-  padding: 8px 18px;
-  border-radius: 4px;
-}
-
-/* Адаптивность */
 @media (max-width: 768px) {
-  .nav-component {
-    display: none !important;
-  }
-
-  .page-title {
-    display: block;
-  }
-
-  #main {
-    padding: 15px 0;
-  }
-
-  .filters {
-    padding: 0 20px;
-  }
-
-  .filters-row {
-    gap: 5px;
-  }
-
-  .filter {
-    font-size: 9px;
-    padding: 3px 8px;
-  }
-
-  .filter-add {
-    display: none;
-  }
-
-  .download-projects {
-    display: none;
-  }
-
-  .mobile-search {
-    display: block;
-  }
-
-  .mobile-add-btn {
-    display: flex;
-  }
-
-  .desktop-table {
-    display: none;
-  }
-
-  .desktop-btn {
-    display: none;
-  }
-
-  .mobile-projects {
-    display: flex;
-  }
-
-  /* Адаптация модальных окон */
-  .modal-overlay {
-    padding: 10px;
-    align-items: flex-start;
-  }
-
-  .modal {
-    width: 100%;
-    max-width: 100%;
-    margin: 10px 0;
-    border-radius: 10px;
-  }
-
-  .modal-header {
-    padding: 14px 20px;
-    font-size: 16px;
-  }
-
-  .modal-body {
-    padding: 20px;
-  }
-
-  .form-grid {
-    grid-template-columns: 1fr;
-    gap: 15px;
-  }
-
-  .field label {
-    font-size: 13px;
-  }
-
-  .field input,
-  .field select {
-    height: 38px;
-    font-size: 14px;
-  }
-
-  textarea {
-    height: 100px;
-    font-size: 14px;
-  }
-
-  .modal-footer {
-    flex-wrap: wrap;
-    padding: 15px 20px;
-    gap: 8px;
-  }
-
-  .save,
-  .cancel,
-  .delete {
-    flex: 1;
-    min-width: 80px;
-    padding: 10px 12px;
-    font-size: 13px;
-    text-align: center;
-  }
+  .nav-component { display: none !important; }
+  .page-title { display: block; }
+  #main { padding: 15px 0; }
+  .filters { padding: 0 20px; }
+  .filters-row { gap: 5px; }
+  .filter { font-size: 9px; padding: 3px 8px; }
+  .filter-add { display: none; }
+  .download-projects { display: none; }
+  .mobile-search { display: block; }
+  .mobile-add-btn { display: flex; }
+  .desktop-table { display: none; }
+  .desktop-btn { display: none; }
+  .mobile-projects { display: flex; }
+  .modal-overlay { padding: 10px; align-items: flex-start; }
+  .modal { width: 100%; max-width: 100%; margin: 10px 0; border-radius: 10px; }
+  .modal-header { padding: 14px 20px; font-size: 16px; }
+  .modal-body { padding: 20px; }
+  .form-grid { grid-template-columns: 1fr; gap: 15px; }
+  .field label { font-size: 13px; }
+  .field input, .field select { height: 38px; font-size: 14px; }
+  textarea { height: 100px; font-size: 14px; }
+  .modal-footer { flex-wrap: wrap; padding: 15px 20px; gap: 8px; }
+  .save, .cancel, .delete { flex: 1; min-width: 80px; padding: 10px 12px; font-size: 13px; text-align: center; }
 }
 
 @media (max-width: 480px) {
-  .page-title {
-    font-size: 16px;
-  }
-
-  .filters {
-    padding: 0 10px;
-  }
-
-  .mobile-search {
-    margin: 0 10px 15px;
-  }
-
-  .mobile-add-btn {
-    top: 60px;
-    right: 10px;
-  }
-
-  .mobile-project-card {
-    padding: 12px 15px;
-  }
-
-  .mobile-project-name {
-    font-size: 12px;
-  }
-
-  .mobile-project-deadline span {
-    font-size: 12px;
-  }
-
-  .finance-value {
-    font-size: 12px;
-  }
-
-  /* Адаптация модальных окон для маленьких экранов */
-  .modal-overlay {
-    padding: 5px;
-  }
-
-  .modal-header {
-    padding: 12px 15px;
-    font-size: 15px;
-  }
-
-  .modal-body {
-    padding: 15px;
-  }
-
-  .form-grid {
-    gap: 12px;
-  }
-
-  .field label {
-    font-size: 12px;
-  }
-
-  .field input,
-  .field select {
-    height: 36px;
-    font-size: 13px;
-  }
-
-  textarea {
-    height: 80px;
-  }
-
-  .modal-footer {
-    padding: 12px 15px;
-    flex-direction: column;
-  }
-
-  .save,
-  .cancel,
-  .delete {
-    width: 100%;
-    min-width: auto;
-  }
+  .page-title { font-size: 16px; }
+  .filters { padding: 0 10px; }
+  .mobile-search { margin: 0 10px 15px; }
+  .mobile-add-btn { top: 60px; right: 10px; }
+  .mobile-project-card { padding: 12px 15px; }
+  .mobile-project-name { font-size: 12px; }
+  .mobile-project-deadline span { font-size: 12px; }
+  .finance-value { font-size: 12px; }
+  .modal-overlay { padding: 5px; }
+  .modal-header { padding: 12px 15px; font-size: 15px; }
+  .modal-body { padding: 15px; }
+  .form-grid { gap: 12px; }
+  .field label { font-size: 12px; }
+  .field input, .field select { height: 36px; font-size: 13px; }
+  textarea { height: 80px; }
+  .modal-footer { padding: 12px 15px; flex-direction: column; }
+  .save, .cancel, .delete { width: 100%; min-width: auto; }
 }
 </style>
